@@ -99,21 +99,21 @@ class ICMPType:
 
 class ICMPPacket:
     """
-    ICMP Packet implementation without struct.Struct or dataclasses.
+    ICMP Packet implementation 
     """
 
     CODE = 0
 
     def __init__(self, packet_type, identifier, sequence_number, payload):
-        self.type = packet_type  # Integer representing ICMPType
-        self.identifier = identifier  # Identifier for the packet
-        self.sequence_number = sequence_number  # Sequence number
-        self.payload = payload  # Packet payload
+        self.type = packet_type  
+        self.identifier = identifier  
+        self.sequence_number = sequence_number  
+        self.payload = payload  
 
     @staticmethod
-    def unpack_header(packet):
+    def unpack_header(packet : bytes):
         """
-        Unpack the ICMP header manually without struct.Struct.
+        Unpack the ICMP header 
         """
         packet_type = packet[0]
         code = packet[1]
@@ -125,7 +125,9 @@ class ICMPPacket:
     @staticmethod
     def pack_header(packet_type, code, checksum, identifier, sequence_number):
         """
-        Pack the ICMP header manually without struct.Struct.
+        Pack the ICMP header to bytes 
+        :params header fields to pack into bytes
+        returns the icmp header
         """
         header = bytearray(8)
         header[0] = packet_type
@@ -142,6 +144,8 @@ class ICMPPacket:
     def deserialize(cls, packet: bytes):
         """
         Build ICMPPacket based on a stream of bytes.
+        param packet: packet to deseralize into an ICMPPacket
+        returns an icmppacket
         """
         packet_type, code, checksum, identifier, sequence_number = cls.unpack_header(packet)
 
@@ -155,7 +159,7 @@ class ICMPPacket:
         if checksum != computed_checksum:
             raise exceptions.WrongChecksumOnICMPPacket()
 
-        return cls(packet_type, identifier, sequence_number, packet[8:])
+        return cls(packet_type, identifier, sequence_number, packet[8:]) #packet [8:] is payload
 
     def serialize(self):
         """
@@ -183,6 +187,8 @@ class ICMPPacket:
     def compute_checksum(data: bytes):
         """
         Compute the checksum for the ICMP packet.
+        param: data a bytes header without checksum
+        returms checksum
         """
         count_to = (len(data) // 2) * 2
         total = 0

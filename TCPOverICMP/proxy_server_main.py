@@ -15,13 +15,13 @@ log = logging.getLogger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('proxy_client_ip', help='IP address of the forwarder client')
+    parser.add_argument('proxy_client_ip', help='IP address of the ProxyClient client')
     return parser.parse_args()
 
 
 async def main():
     args = parse_args()
-    await proxy_server.Proxy(args.proxy_client_ip).run()
+    await proxy_server.ProxyServer(args.proxy_client_ip).run()
 
 
 def start_asyncio_main():

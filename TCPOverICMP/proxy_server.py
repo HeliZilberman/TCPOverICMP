@@ -8,7 +8,7 @@ from proto import Packet
 log = logging.getLogger(__name__)
 
 
-class Proxy(tunnel_endpoint.TunnelEndpoint):
+class ProxyServer(tunnel_endpoint.TunnelEndpoint):
     @property
     def direction(self):
         return Packet.Direction.PROXY_CLIENT

@@ -62,7 +62,7 @@ import sys
 import asyncio
 import socket
 import logging
-from icmp_packet import ICMPPacket  # Updated import to align with refactored ICMPPacket
+from icmp_packet import ICMPPacket  
 import exceptions
 
 log = logging.getLogger(__name__)
@@ -70,10 +70,9 @@ log.setLevel(logging.DEBUG)
 
 
 class ICMPSocket:
-    IP_HEADER_LENGTH = 20
     MINIMAL_PACKET = b'\x00\x00'
     DEFAULT_DESTINATION_PORT = 0
-    DEFAULT_DESTINATION = ('', DEFAULT_DESTINATION_PORT)
+    IP_HEADER_LENGTH = 20
     DEFAULT_BUFFERSIZE = 4096
 
     def __init__(self, incoming_queue: asyncio.Queue):
@@ -84,8 +83,10 @@ class ICMPSocket:
         except PermissionError as e:
             log.fatal(f'{e}. root required for opening raw ICMP socket. Rerun as root.')
             sys.exit(1)
-        self._icmp_socket.setblocking(False)  # Don't wait for reply
-        self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  # Send one packet to initialize
+        
+        self._icmp_socket.setblocking(False)  #no need to wait to a replay
+        #to intialize a raw socket
+        self._icmp_socket.sendto(self.MINIMAL_PACKET, ('', DEFAULT_DESTINATION_PORT))  
 
     async def recv(self, buffersize: int = DEFAULT_BUFFERSIZE):
         """

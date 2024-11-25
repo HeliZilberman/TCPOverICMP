@@ -10,11 +10,11 @@ from proto import Packet
 log = logging.getLogger(__name__)
 
 
-class Forwarder(tunnel_endpoint.TunnelEndpoint):
+class ProxyClient(tunnel_endpoint.TunnelEndpoint):
     LOCALHOST = '127.0.0.1'
 
     def __init__(self, other_endpoint, port, destination_host, destination_port):
-        super(Forwarder, self).__init__(other_endpoint)
+        super(ProxyClient, self).__init__(other_endpoint)
         log.info(f'forwarding to {destination_host}:{destination_port}')
         self.destination_host = destination_host
         self.destination_port = destination_port
