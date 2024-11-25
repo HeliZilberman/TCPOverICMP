@@ -1,0 +1,67 @@
+# Ignore environment directories
+env/
+venv/
+.env/
+
+# Byte-compiled files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*.~ 
+*.bak
+
+# Unit test/cache artifacts
+.pytest_cache/
+.tox/
+.coverage
+coverage.xml
+*.cover
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment tools
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compiled C extensions
+*.so
+
+# Distribution/build files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Python virtual environments
+*.env/
+*.venv/
+
+# Docker files (if using Docker)
+.dockerignore
+
+# Ignore archives and other generated files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Ignore secrets and credentials
+secrets.env
