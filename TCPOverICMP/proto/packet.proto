@@ -18,7 +18,7 @@ message Packet {
   optional uint32 seq = 2;  //the sequence number of packet   
   optional Operation operation = 3;        
   optional Direction direction = 4; 
-  optional string ip = 5;       // destination ip
+  optional string destination_host = 5;       // destination host
   optional uint32 port = 6;     // destination port
   optional bytes payload = 7; 
 }

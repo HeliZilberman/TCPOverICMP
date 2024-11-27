@@ -72,6 +72,7 @@ log.setLevel(logging.DEBUG)
 class ICMPSocket:
     MINIMAL_PACKET = b'\x00\x00'
     DEFAULT_DESTINATION_PORT = 0
+    DEFAULT_DESTINATION = ('', DEFAULT_DESTINATION_PORT)
     IP_HEADER_LENGTH = 20
     DEFAULT_BUFFERSIZE = 4096
 
@@ -86,7 +87,7 @@ class ICMPSocket:
         
         self._icmp_socket.setblocking(False)  #no need to wait to a replay
         #to intialize a raw socket
-        self._icmp_socket.sendto(self.MINIMAL_PACKET, ('', DEFAULT_DESTINATION_PORT))  
+        self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  
 
     async def recv(self, buffersize: int = DEFAULT_BUFFERSIZE):
         """

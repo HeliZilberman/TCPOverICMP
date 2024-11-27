@@ -7,7 +7,7 @@ def test_packet_creation_and_serialization():
     packet.seq = 1
     packet.operation = Packet.START
     packet.direction = Packet.PROXY_CLIENT
-    packet.ip = "192.168.1.1"
+    packet.destination_host = "192.168.1.1"
     packet.port = 8080
     packet.payload = b"Test payload"
 

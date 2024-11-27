@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpacket.proto\"\x93\x02\n\x06Packet\x12\x11\n\tclient_id\x18\x01 \x01(\r\x12\x0b\n\x03seq\x18\x02 \x01(\r\x12$\n\toperation\x18\x03 \x01(\x0e\x32\x11.Packet.Operation\x12$\n\tdirection\x18\x04 \x01(\x0e\x32\x11.Packet.Direction\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x0c\n\x04port\x18\x06 \x01(\r\x12\x0f\n\x07payload\x18\x07 \x01(\x0c\"A\n\tOperation\x12\t\n\x05START\x10\x00\x12\r\n\tTERMINATE\x10\x01\x12\x11\n\rDATA_TRANSFER\x10\x02\x12\x07\n\x03\x41\x43K\x10\x03\"/\n\tDirection\x12\x10\n\x0cPROXY_CLIENT\x10\x00\x12\x10\n\x0cPROXY_SERVER\x10\x01')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpacket.proto\"\xa1\x02\n\x06Packet\x12\x11\n\tclient_id\x18\x01 \x01(\r\x12\x0b\n\x03seq\x18\x02 \x01(\r\x12$\n\toperation\x18\x03 \x01(\x0e\x32\x11.Packet.Operation\x12$\n\tdirection\x18\x04 \x01(\x0e\x32\x11.Packet.Direction\x12\x18\n\x10\x64\x65stination_host\x18\x05 \x01(\t\x12\x0c\n\x04port\x18\x06 \x01(\r\x12\x0f\n\x07payload\x18\x07 \x01(\x0c\"A\n\tOperation\x12\t\n\x05START\x10\x00\x12\r\n\tTERMINATE\x10\x01\x12\x11\n\rDATA_TRANSFER\x10\x02\x12\x07\n\x03\x41\x43K\x10\x03\"/\n\tDirection\x12\x10\n\x0cPROXY_CLIENT\x10\x00\x12\x10\n\x0cPROXY_SERVER\x10\x01')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -21,9 +21,9 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'packet_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _globals['_PACKET']._serialized_start=17
-  _globals['_PACKET']._serialized_end=292
-  _globals['_PACKET_OPERATION']._serialized_start=178
-  _globals['_PACKET_OPERATION']._serialized_end=243
-  _globals['_PACKET_DIRECTION']._serialized_start=245
-  _globals['_PACKET_DIRECTION']._serialized_end=292
+  _globals['_PACKET']._serialized_end=306
+  _globals['_PACKET_OPERATION']._serialized_start=192
+  _globals['_PACKET_OPERATION']._serialized_end=257
+  _globals['_PACKET_DIRECTION']._serialized_start=259
+  _globals['_PACKET_DIRECTION']._serialized_end=306
 # @@protoc_insertion_point(module_scope)

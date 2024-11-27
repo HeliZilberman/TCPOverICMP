@@ -15,9 +15,9 @@ class ProxyServer(tunnel_endpoint.TunnelEndpoint):
 
     async def handle_start_request(self, tunnel_packet: Packet):
         try:
-            reader, writer = await asyncio.open_connection(tunnel_packet.ip, tunnel_packet.port)
+            reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
         except ConnectionRefusedError:
-            log.debug(f'{tunnel_packet.ip}:{tunnel_packet.port} refused connection. tunnel not started.')
+            log.debug(f'{tunnel_packet.destination_host}:{tunnel_packet.port} refused connection. tunnel not started.')
             return
 
         self.client_manager.add_client(

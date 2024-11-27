@@ -1,9 +1,5 @@
 import asyncio
 import logging
-
-
-# from TCPOverICMP import tunnel_endpoint, tcp_server
-# from TCPOverICMP.proto import Packet
 import tunnel_endpoint, tcp_server
 from proto import Packet
 
@@ -44,7 +40,7 @@ class ProxyClient(tunnel_endpoint.TunnelEndpoint):
                 client_id=client_id,
                 operation=Packet.Operation.START,
                 direction=self.direction,
-                ip=self.destination_host,
+                destination_host=self.destination_host,
                 port=self.destination_port,
             )
             # only add client if other endpoint acked.

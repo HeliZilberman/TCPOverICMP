@@ -114,6 +114,7 @@ class ICMPPacket:
     def unpack_header(packet : bytes):
         """
         Unpack the ICMP header 
+        :params packet 
         """
         packet_type = packet[0]
         code = packet[1]
