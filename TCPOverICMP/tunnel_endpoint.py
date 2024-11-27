@@ -11,8 +11,8 @@ class TunnelEndpoint:
     ACK_WAITING_TIME = 0.7
 
     def __init__(self, other_endpoint=None):
-        self.other_endpoint = other_endpoint
-        log.info(f'Other tunnel endpoint: {self.other_endpoint}')
+        self.other_endpoint = {"ip": other_endpoint}
+        log.info(f'Other tunnel endpoint: {self.other_endpoint["ip"]}')
 
         self.stale_tcp_connections = asyncio.Queue()
         self.incoming_from_icmp_channel = asyncio.Queue()
@@ -66,7 +66,7 @@ class TunnelEndpoint:
             self.handle_incoming_from_tcp_channel(),
             self.handle_incoming_from_icmp_channel(),
             self.wait_for_stale_connection(),
-            self.icmp_socket.wait_for_incoming_packet(),
+            self.icmp_socket.wait_for_incoming_packet(self.other_endpoint),
         ]
         running_tasks = [asyncio.create_task(coro) for coro in self.coroutines_to_run + constant_coroutines]
 
@@ -179,4 +179,4 @@ class TunnelEndpoint:
             sequence_number=self.MAGIC_SEQUENCE_NUMBER,
             payload=payload
         )
-        self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint)
+        self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint["ip"])

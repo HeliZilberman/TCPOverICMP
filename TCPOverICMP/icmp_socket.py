@@ -63,6 +63,7 @@ import asyncio
 import socket
 import logging
 from icmp_packet import ICMPPacket  
+import struct
 import exceptions
 
 log = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ class ICMPSocket:
         #to intialize a raw socket
         self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  
 
-    async def recv(self, buffersize: int = DEFAULT_BUFFERSIZE):
+    async def recv(self, other_endpoint: dict, buffersize: int = DEFAULT_BUFFERSIZE):
         """
         Receive a single ICMP packet.
         :param buffersize: Maximum length of data to receive.
@@ -98,22 +99,34 @@ class ICMPSocket:
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
         if not data:
             raise exceptions.RecvReturnedEmptyString()
+        
+
+        
 
         # Deserialize the ICMP packet
         try:
             raw_packet = data[self.IP_HEADER_LENGTH:]  # Remove IP header
+            #when handling start from the proxy_server
+            if other_endpoint["ip"]==None:
+                # IP header is the first 20 bytes for IPv4 without options
+                ip_header = data[:20]
+                # Unpack the IP header (source IP is at byte offset 12-15)
+                iph = struct.unpack('!BBHHHBBH4s4s', ip_header)
+                source_ip = socket.inet_ntoa(iph[8]) 
+                log.info(f"Source IP Address: {source_ip}")
+                other_endpoint["ip"] = source_ip
             return ICMPPacket.deserialize(raw_packet)
         except exceptions.InvalidICMPCode:
             log.debug("Invalid ICMP code detected, skipping packet.")
             return None
 
-    async def wait_for_incoming_packet(self):
+    async def wait_for_incoming_packet(self, other_endpoint:dict = None):
         """
         "Listen" on the socket for incoming ICMP packets and put them into the queue.
         """
         while True:
             try:
-                packet = await self.recv()
+                packet = await self.recv(other_endpoint)
                 if packet is not None:
                     await self.incoming_queue.put(packet)
             except exceptions.InvalidICMPCode:

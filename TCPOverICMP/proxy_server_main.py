@@ -1,13 +1,7 @@
 import asyncio
 import logging
 import argparse
-# from TCPOverICMP import proxy
 import  proxy_server
-
-# import debugpy
-# debugpy.listen(("0.0.0.0", 5678))  # Listen on all interfaces
-# print("Waiting for debugger to attach...")
-# debugpy.wait_for_client()  # Pause execution until debugger attaches
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -21,7 +15,8 @@ def parse_args():
 
 async def main():
     args = parse_args()
-    await proxy_server.ProxyServer(args.proxy_client_ip).run()
+    # await proxy_server.ProxyServer(args.proxy_client_ip).run()
+    await proxy_server.ProxyServer().run()
 
 
 def start_asyncio_main():
