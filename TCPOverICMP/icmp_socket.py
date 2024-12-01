@@ -99,10 +99,6 @@ class ICMPSocket:
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
         if not data:
             raise exceptions.RecvReturnedEmptyString()
-        
-
-        
-
         # Deserialize the ICMP packet
         try:
             raw_packet = data[self.IP_HEADER_LENGTH:]  # Remove IP header

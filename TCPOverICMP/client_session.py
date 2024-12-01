@@ -1,34 +1,33 @@
 import asyncio
 import logging
 import itertools
-# from TCPOverICMP import exceptions
 import exceptions
 
 log = logging.getLogger(__name__)
 
 
 class ClientSession:
-    INITIAL_SEQUENCE_NUMBER = 1
+    START_SEQUENCE_VALUE = 1
     RECV_BLOCK_SIZE = 1024
 
     def __init__(
             self,
-            client_id: int,
+            session_id: int,
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter,
     ):
-        self.client_id = client_id
+        self.session_id = session_id
         self.reader = reader
         self.writer = writer
-        self.seq = itertools.count(self.INITIAL_SEQUENCE_NUMBER)
-        self.last_written = self.INITIAL_SEQUENCE_NUMBER - 1
+        self.seq = itertools.count(self.START_SEQUENCE_VALUE)
+        self.last_written = self.START_SEQUENCE_VALUE - 1
         self.packets = {}
 
     async def stop(self):
         """
         close the underlying socket, thus stopping the client session
         """
-        log.debug(f'(client_id={self.client_id}): Shutting down..')
+        log.debug(f'(session_id={self.session_id}): Shutting down..')
         self.writer.close()
         await self.writer.wait_closed()
 
@@ -59,7 +58,8 @@ class ClientSession:
         if seq in self.packets.keys():
             log.debug(f'ignoring repeated packet: (seq_num={seq})')
             return
-
+        if len(self.packets.keys()) > 2:
+            log.info({self.last_written})
         self.packets[seq] = data
         while (self.last_written + 1) in self.packets.keys():
             self.last_written += 1

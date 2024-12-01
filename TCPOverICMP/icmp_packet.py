@@ -131,7 +131,7 @@ class ICMPType:
 
 class ICMPPacket:
     """
-    ICMP Packet implementation using struct.Struct for serialization and deserialization.
+    ICMP Packet implementation - uisng struct to seralize bytes 
     """
 
     CODE = 0

@@ -21,7 +21,7 @@ class ProxyServer(tunnel_endpoint.TunnelEndpoint):
             return
 
         self.client_manager.add_client(
-            client_id=tunnel_packet.client_id,
+            session_id=tunnel_packet.session_id,
             reader=reader,
             writer=writer,
         )

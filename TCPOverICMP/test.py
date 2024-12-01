@@ -3,7 +3,7 @@ from proto import Packet
 def test_packet_creation_and_serialization():
     # Create a new Packet instance
     packet = Packet()
-    packet.client_id = 1234
+    packet.session_id = 1234
     packet.seq = 1
     packet.operation = Packet.START
     packet.direction = Packet.PROXY_CLIENT
@@ -22,7 +22,7 @@ def test_packet_creation_and_serialization():
 
     # Print the deserialized Packet
     print("\nDeserialized Packet:")
-    print(f"Client ID: {deserialized_packet.client_id}")
+    print(f"Client ID: {deserialized_packet.session_id}")
     print(f"Sequence Number: {deserialized_packet.seq}")
     print(f"Operation: {deserialized_packet.operation}")
     print(f"Direction: {deserialized_packet.direction}")

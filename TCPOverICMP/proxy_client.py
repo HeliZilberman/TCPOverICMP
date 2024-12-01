@@ -16,8 +16,9 @@ class ProxyClient(tunnel_endpoint.TunnelEndpoint):
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue()
         self.tcp_server = tcp_server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
-        self.coroutines_to_run.append(self.tcp_server.serve_forever())
-        self.coroutines_to_run.append(self.wait_for_new_connection())
+        #proxy client corutines to run 
+        self.coroutines_client.append(self.tcp_server.serve_forever())
+        self.coroutines_client.append(self.wait_for_new_connection())
 
     @property
     def direction(self):
@@ -25,7 +26,7 @@ class ProxyClient(tunnel_endpoint.TunnelEndpoint):
 
     async def handle_start_request(self, tunnel_packet: Packet):
         """
-        not the right endpoint for this operation. therefore ignore this packet.
+        only finctions in the proxy server endpoint
         """
         log.debug(f'invalid START command. ignoring...\n{tunnel_packet}')
 
@@ -34,18 +35,18 @@ class ProxyClient(tunnel_endpoint.TunnelEndpoint):
         receive new connections from the server through incoming_tcp_connections queue.
         """
         while True:
-            client_id, reader, writer = await self.incoming_tcp_connections.get()
+            session_id, reader, writer = await self.incoming_tcp_connections.get()
 
             new_tunnel_packet = Packet(
-                client_id=client_id,
+                session_id=session_id,
                 operation=Packet.Operation.START,
                 direction=self.direction,
                 destination_host=self.destination_host,
                 port=self.destination_port,
             )
             # only add client if other endpoint acked.
-            if await self.send_icmp_packet_blocking(new_tunnel_packet):
-                self.client_manager.add_client(client_id, reader, writer)
+            if await self.send_icmp_packet_wait_ack(new_tunnel_packet):
+                self.client_manager.add_client(session_id, reader, writer)
             else:  # if the other endpoint didnt receive the START request, close the local client.
                 writer.close()
                 await writer.wait_closed()
