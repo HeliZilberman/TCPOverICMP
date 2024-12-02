@@ -8,12 +8,12 @@ from proto import Packet
 log = logging.getLogger(__name__)
 
 
-class ProxyServer(tunnel_endpoint.TunnelEndpoint):
+class ProxyServer(tunnel_endpoint.TCPoverICMPTunnel):
     @property
     def direction(self):
         return Packet.Direction.PROXY_CLIENT
 
-    async def handle_start_request(self, tunnel_packet: Packet):
+    async def operate_start_operation(self, tunnel_packet: Packet):
         try:
             reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
         except ConnectionRefusedError:

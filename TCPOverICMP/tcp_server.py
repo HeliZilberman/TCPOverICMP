@@ -12,11 +12,11 @@ class Server:
         self.host = host
         self.port = port
         self.new_connections = new_connections
-        self._client_id = itertools.count()
+        self.new_session_id = itertools.count()
 
     async def serve_forever(self):
         server = await asyncio.start_server(
-            self.handle_new_tcp_connection,
+            self.operate_new_tcp_connection,
             host=self.host,
             port=self.port,
             family=socket.AF_INET
@@ -24,5 +24,6 @@ class Server:
         log.info(f'listening on {self.host}:{self.port}')
         await server.serve_forever()
 
-    async def handle_new_tcp_connection(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        await self.new_connections.put((next(self._client_id), reader, writer))
+    async def operate_new_tcp_connection(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        await self.new_connections.put((next(self.new_session_id), reader, writer))
+        log.info(f"new connrction {self.new_session_id}")

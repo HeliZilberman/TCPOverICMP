@@ -5,43 +5,43 @@ from proto import Packet
 
 log = logging.getLogger(__name__)
 
-class TunnelEndpoint:
-    MAGIC_IDENTIFIER = 0xcafe
-    MAGIC_SEQUENCE_NUMBER = 0xbabe
-    ACK_WAITING_TIME = 0.7
+class TCPoverICMPTunnel:
+    RESPONSE_WAIT_TIME = 1.0 #my computer is slow - time to wait for ack 
+
+    #special identifiers for debugging in wireshark
+    ICMP_PACKET_IDENTIFIER = 0xbeef
+    PACKET_SEQUENCE_MARKER = 0xdead
 
     def __init__(self, other_endpoint=None):
         self.other_endpoint = {"ip": other_endpoint}
-        log.info(f'Other tunnel endpoint: {self.other_endpoint["ip"]}')
-
-        self.timed_out_tcp_connections = asyncio.Queue()
         self.incoming_from_icmp_channel = asyncio.Queue()
-        self.incoming_from_tcp_channel = asyncio.Queue()
-
         self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
+
+        self.incoming_from_tcp_channel = asyncio.Queue()
+        self.timed_out_tcp_connections = asyncio.Queue()
         self.client_manager = client_manager.ClientManager(self.timed_out_tcp_connections, self.incoming_from_tcp_channel)
 
         self.packets_requiring_ack = {}
-        self.coroutines_client = []
+        self.constant_coroutines = [
+            self.operate_incoming_from_tcp_channel(),
+            self.operate_incoming_from_icmp_channel(),
+            self.wait_timed_out_connections(),
+            self.icmp_socket.wait_for_incoming_packet(self.other_endpoint),
+        ]
 
     @property
     def direction(self):
+        """recognize the packet"""
         raise NotImplementedError()
 
-    async def handle_start_request(self, tunnel_packet: Packet):
+    async def operate_start_operation(self, tunnel_packet: Packet):
+        """proxy server implements """
         raise NotImplementedError()
-
-    async def handle_end_request(self, tunnel_packet: Packet):
+    
+    async def operate_data_operation(self, tunnel_packet: Packet):
         """
-        Generic handle for TERMINATE request. Remove client and send ACK.
-        """
-        await self.client_manager.remove_client(tunnel_packet.session_id)
-        self.send_ack(tunnel_packet)
-
-    async def handle_data_request(self, tunnel_packet: Packet):
-        """
-        handle for data request. fowords to client and sends ack 
-        param tunnel_packet is the packet that is sent to client ,
+        operate  data operation. fowards to client and sends ack 
+        params: tunnel_packet  the packet that is sent to client ,
         """
         await self.client_manager.write_to_client(
             tunnel_packet.session_id,
@@ -50,10 +50,20 @@ class TunnelEndpoint:
         )
         self.send_ack(tunnel_packet)
 
-    async def handle_ack_request(self, tunnel_packet: Packet):
+    async def operate_terminate_operation(self, tunnel_packet: Packet):
         """
-        Generic handle for an ACK request.
-        Packet can be recognized uniquely by combining session_id and seq.
+        operates the TERMINATE operation. removes the client and send ack for terminate.
+        """
+        await self.client_manager.remove_client(tunnel_packet.session_id)
+        self.send_ack(tunnel_packet)
+
+    
+
+    async def operate_ack_request(self, tunnel_packet: Packet):
+        """
+        operate an ACK operation.
+        the packet is recognized by the session_id and the sequence of packet 
+        params: tunnel packet 
         """
         packet_id = (tunnel_packet.session_id, tunnel_packet.seq)
         if packet_id in self.packets_requiring_ack:
@@ -61,25 +71,18 @@ class TunnelEndpoint:
 
     async def run(self):
         """
-        Run the tunnel endpoint tasks.
+        runs the classe's coroutines
         """
-        constant_coroutines = [
-            self.handle_incoming_from_tcp_channel(),
-            self.handle_incoming_from_icmp_channel(),
-            self.wait_timed_out_connections(),
-            self.icmp_socket.wait_for_incoming_packet(self.other_endpoint),
-        ]
-        running_tasks = [asyncio.create_task(coro) for coro in self.coroutines_client + constant_coroutines]
-
+        running_tasks = [asyncio.create_task(coro) for coro in self.constant_coroutines]
         await asyncio.gather(*running_tasks)
 
-    async def handle_incoming_from_icmp_channel(self):
+    async def operate_incoming_from_icmp_channel(self):
         """
         Listen for new tunnel packets from the ICMP channel. Parse and execute them.
         """
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            if new_icmp_packet.identifier != self.MAGIC_IDENTIFIER or new_icmp_packet.sequence_number != self.MAGIC_SEQUENCE_NUMBER:
+            if new_icmp_packet.identifier != self.ICMP_PACKET_IDENTIFIER or new_icmp_packet.sequence_number != self.PACKET_SEQUENCE_MARKER:
                 log.debug(f'Invalid magic (identifier={new_icmp_packet.identifier})'
                           f'(sequence_number={new_icmp_packet.sequence_number}), ignoring.')
                 continue
@@ -92,15 +95,15 @@ class TunnelEndpoint:
                 log.debug('Ignoring packet headed in the wrong direction.')
                 continue
 
-            actions = {
-                Packet.Operation.START: self.handle_start_request,
-                Packet.Operation.TERMINATE: self.handle_end_request,
-                Packet.Operation.DATA_TRANSFER: self.handle_data_request,
-                Packet.Operation.ACK: self.handle_ack_request,
+            operations = {
+                Packet.Operation.START: self.operate_start_operation,
+                Packet.Operation.TERMINATE: self.operate_terminate_operation,
+                Packet.Operation.DATA_TRANSFER: self.operate_data_operation,
+                Packet.Operation.ACK: self.operate_ack_request,
             }
-            await actions[tunnel_packet.operation](tunnel_packet)
+            await operations[tunnel_packet.operation](tunnel_packet)
 
-    async def handle_incoming_from_tcp_channel(self):
+    async def operate_incoming_from_tcp_channel(self):
         """
         Await on the incoming TCP channel queue for new data packets to send on the ICMP channel.
         """
@@ -158,7 +161,7 @@ class TunnelEndpoint:
             try:
                 await asyncio.wait_for(
                     self.packets_requiring_ack[(tunnel_packet.session_id, tunnel_packet.seq)].wait(),
-                    self.ACK_WAITING_TIME
+                    self.RESPONSE_WAIT_TIME
                 )
                 self.packets_requiring_ack.pop((tunnel_packet.session_id, tunnel_packet.seq))
                 return True
@@ -178,8 +181,8 @@ class TunnelEndpoint:
         """
         new_icmp_packet = icmp_packet.ICMPPacket(
             packet_type=packet_type,
-            identifier=self.MAGIC_IDENTIFIER,
-            sequence_number=self.MAGIC_SEQUENCE_NUMBER,
+            identifier=self.ICMP_PACKET_IDENTIFIER,
+            sequence_number=self.PACKET_SEQUENCE_MARKER,
             payload=payload
         )
         self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint["ip"])

@@ -6,25 +6,26 @@ from proto import Packet
 log = logging.getLogger(__name__)
 
 
-class ProxyClient(tunnel_endpoint.TunnelEndpoint):
+class ProxyClient(tunnel_endpoint.TCPoverICMPTunnel):
     LOCALHOST = '127.0.0.1'
 
     def __init__(self, other_endpoint, port, destination_host, destination_port):
         super(ProxyClient, self).__init__(other_endpoint)
+        log.info(f'proxy-server: {other_endpoint}')
         log.info(f'forwarding to {destination_host}:{destination_port}')
         self.destination_host = destination_host
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue()
         self.tcp_server = tcp_server.Server(self.LOCALHOST, port, self.incoming_tcp_connections)
         #proxy client corutines to run 
-        self.coroutines_client.append(self.tcp_server.serve_forever())
-        self.coroutines_client.append(self.wait_for_new_connection())
+        self.constant_coroutines.append(self.tcp_server.serve_forever())
+        self.constant_coroutines.append(self.wait_for_new_connection())
 
     @property
     def direction(self):
         return Packet.Direction.PROXY_SERVER
 
-    async def handle_start_request(self, tunnel_packet: Packet):
+    async def operate_start_operation(self, tunnel_packet: Packet):
         """
         only finctions in the proxy server endpoint
         """

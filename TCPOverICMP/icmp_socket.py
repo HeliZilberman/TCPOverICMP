@@ -109,7 +109,7 @@ class ICMPSocket:
                 # Unpack the IP header (source IP is at byte offset 12-15)
                 iph = struct.unpack('!BBHHHBBH4s4s', ip_header)
                 source_ip = socket.inet_ntoa(iph[8]) 
-                log.info(f"Source IP Address: {source_ip}")
+                log.info(f"other endpoint: {source_ip}")
                 other_endpoint["ip"] = source_ip
             return ICMPPacket.deserialize(raw_packet)
         except exceptions.InvalidICMPCode:
