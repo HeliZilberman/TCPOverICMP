@@ -11,14 +11,13 @@ log.setLevel(logging.DEBUG)
 
 
 class ICMPSocket:
-    MINIMAL_PACKET = b'\x00\x00'
-    DEFAULT_DESTINATION_PORT = 0
-    DEFAULT_DESTINATION = ('', DEFAULT_DESTINATION_PORT)
-    IP_HEADER_LENGTH = 20
-    DEFAULT_BUFFERSIZE = 4096
+    DEFAULT_ICMP_TARGET = ('', 0)
+    IPv4_HEADER_SIZE = 20
+    SOCKET_BUFFER_SIZE = 4096
+    ICMP_INIT_PACKET = b'\x00\x00'
 
-    def __init__(self, incoming_queue: asyncio.Queue):
-        self.incoming_queue = incoming_queue
+    def __init__(self, packet_queue: asyncio.Queue):
+        self.packet_queue = packet_queue
 
         try:
             self._icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
@@ -28,43 +27,44 @@ class ICMPSocket:
         
         self._icmp_socket.setblocking(False)  #no need to wait to a replay
         #to intialize a raw socket
-        self._icmp_socket.sendto(self.MINIMAL_PACKET, self.DEFAULT_DESTINATION)  
+        self._icmp_socket.sendto(self.ICMP_INIT_PACKET, self.DEFAULT_ICMP_TARGET)  
 
-    async def recv(self, other_endpoint: dict, buffersize: int = DEFAULT_BUFFERSIZE):
+    async def recv(self, remote_endpoint: dict, buffersize: int = SOCKET_BUFFER_SIZE):
         """
-        Receive a single ICMP packet.
-        :param buffersize: Maximum length of data to receive.
-        :return: An instance of ICMPPacket representing a sniffed ICMP packet.
+        recives an icmp packet
+        params buffersize: the max data to recive (bytes)
+        returns  an ICMP packet that was sniffed.
         """
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
         if not data:
             raise exceptions.RecvReturnedEmptyString()
         # Deserialize the ICMP packet
         try:
-            raw_packet = data[self.IP_HEADER_LENGTH:]  # Remove IP header
+            raw_packet = data[self.IPv4_HEADER_SIZE:]  # Remove IP header
             #when handling start from the proxy_server
-            if other_endpoint["ip"]==None:
+            if remote_endpoint["ip"]==None:
                 # IP header is the first 20 bytes for IPv4 without options
                 ip_header = data[:20]
                 # Unpack the IP header (source IP is at byte offset 12-15)
                 iph = struct.unpack('!BBHHHBBH4s4s', ip_header)
                 source_ip = socket.inet_ntoa(iph[8]) 
                 log.info(f"other endpoint: {source_ip}")
-                other_endpoint["ip"] = source_ip
+                remote_endpoint["ip"] = source_ip
             return ICMPPacket.deserialize(raw_packet)
         except exceptions.InvalidICMPCode:
             log.debug("Invalid ICMP code detected, skipping packet.")
             return None
 
-    async def wait_for_incoming_packet(self, other_endpoint:dict = None):
+    async def wait_for_incoming_packet(self, remote_endpoint:dict = None):
         """
-        "Listen" on the socket for incoming ICMP packets and put them into the queue.
+        listen on socket for incoming ICMP packets and put them into the queue(sniff).
+        params: remote_endpoint - initialize the ip of the repmote endpoint if needed
         """
         while True:
             try:
-                packet = await self.recv(other_endpoint)
+                packet = await self.recv(remote_endpoint)
                 if packet is not None:
-                    await self.incoming_queue.put(packet)
+                    await self.packet_queue.put(packet)
             except exceptions.InvalidICMPCode:
                 # Ignore invalid packets
                 pass
@@ -72,8 +72,8 @@ class ICMPSocket:
     def sendto(self, packet: ICMPPacket, destination: str):
         """
         Send an ICMP packet to the specified destination.
-        :param packet: An instance of ICMPPacket to send.
-        :param destination: The IP address of the destination.
+        params: packet: An instance of ICMPPacket to send.
+               destination: The IP address of the destination.
         """
         log.debug(f'Sending packet with payload: {packet.payload} to {destination}')
-        self._icmp_socket.sendto(packet.serialize(), (destination, self.DEFAULT_DESTINATION_PORT))
+        self._icmp_socket.sendto(packet.serialize(), (destination, 0))

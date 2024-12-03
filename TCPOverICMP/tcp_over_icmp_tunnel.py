@@ -12,8 +12,8 @@ class TCPoverICMPTunnel:
     ICMP_PACKET_IDENTIFIER = 0xbeef
     PACKET_SEQUENCE_MARKER = 0xdead
 
-    def __init__(self, other_endpoint=None):
-        self.other_endpoint = {"ip": other_endpoint}
+    def __init__(self, remote_endpoint=None):
+        self.remote_endpoint = {"ip": remote_endpoint}
         self.incoming_from_icmp_channel = asyncio.Queue()
         self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
 
@@ -21,12 +21,12 @@ class TCPoverICMPTunnel:
         self.timed_out_tcp_connections = asyncio.Queue()
         self.client_manager = client_manager.ClientManager(self.timed_out_tcp_connections, self.incoming_from_tcp_channel)
 
-        self.packets_requiring_ack = {}
+        self.packets_waiting_ack = {}
         self.constant_coroutines = [
             self.operate_incoming_from_tcp_channel(),
             self.operate_incoming_from_icmp_channel(),
             self.wait_timed_out_connections(),
-            self.icmp_socket.wait_for_incoming_packet(self.other_endpoint),
+            self.icmp_socket.wait_for_incoming_packet(self.remote_endpoint),
         ]
 
     @property
@@ -66,19 +66,36 @@ class TCPoverICMPTunnel:
         params: tunnel packet 
         """
         packet_id = (tunnel_packet.session_id, tunnel_packet.seq)
-        if packet_id in self.packets_requiring_ack:
-            self.packets_requiring_ack[packet_id].set()
+        if packet_id in self.packets_waiting_ack:
+            self.packets_waiting_ack[packet_id].set()
 
     async def run(self):
         """
-        runs the classe's coroutines
+        runs the classe's coroutines - run all tasks of class
         """
         running_tasks = [asyncio.create_task(coro) for coro in self.constant_coroutines]
         await asyncio.gather(*running_tasks)
 
+    async def operate_incoming_from_tcp_channel(self):
+        """
+        await for  the new data packets on the incoming TCP channel queue to send on the ICMP channel.
+        """
+        while True:
+            data, session_id, seq = await self.incoming_from_tcp_channel.get()
+
+            new_tunnel_packet = Packet(
+                session_id=session_id,
+                seq=seq,
+                operation=Packet.Operation.DATA_TRANSFER,
+                direction=self.direction,
+                payload=data,
+            )
+            asyncio.create_task(self.send_icmp_packet_wait_ack(new_tunnel_packet))
+    
+    
     async def operate_incoming_from_icmp_channel(self):
         """
-        Listen for new tunnel packets from the ICMP channel. Parse and execute them.
+        await to newe packets from the ICMP channel, parse the packets and execute the action
         """
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
@@ -92,9 +109,9 @@ class TCPoverICMPTunnel:
             log.debug(f'Received:\n{tunnel_packet}')
 
             if tunnel_packet.direction == self.direction:
-                log.debug('Ignoring packet headed in the wrong direction.')
+                log.debug('ifnore packet to same direction')
                 continue
-
+            #execute the packet action    
             operations = {
                 Packet.Operation.START: self.operate_start_operation,
                 Packet.Operation.TERMINATE: self.operate_terminate_operation,
@@ -103,26 +120,12 @@ class TCPoverICMPTunnel:
             }
             await operations[tunnel_packet.operation](tunnel_packet)
 
-    async def operate_incoming_from_tcp_channel(self):
-        """
-        Await on the incoming TCP channel queue for new data packets to send on the ICMP channel.
-        """
-        while True:
-            data, session_id, seq = await self.incoming_from_tcp_channel.get()
-
-            new_tunnel_packet = Packet(
-                session_id=session_id,
-                seq=seq,
-                operation=Packet.Operation.DATA_TRANSFER,
-                direction=self.direction,
-                payload=data,
-            )
-            asyncio.create_task(self.send_icmp_packet_wait_ack(new_tunnel_packet))
+   
 
     async def wait_timed_out_connections(self):
         """
-        Await on the stale TCP connections queue for a stale client.
-        terminate session and selete client 
+        await on the timed out TCP connections queue for a timed out client 
+        terminate session and delete client 
         """
         while True:
             session_id = await self.timed_out_tcp_connections.get()
@@ -135,6 +138,7 @@ class TCPoverICMPTunnel:
     def send_ack(self, tunnel_packet: Packet):
         """
         Send an ACK for a packet using EchoReply.
+        used by proxy-server
         """
         new_tunnel_packet = Packet(
             session_id=tunnel_packet.session_id,
@@ -150,8 +154,9 @@ class TCPoverICMPTunnel:
     async def send_icmp_packet_wait_ack(self, tunnel_packet: Packet):
         """
         Send an ICMP packet and ensure it is acknowledged. Retry up to 3 times if necessary.
+        params: tunnel_packet the packet sent it the icmp socket
         """
-        self.packets_requiring_ack[(tunnel_packet.session_id, tunnel_packet.seq)] = asyncio.Event()
+        self.packets_waiting_ack[(tunnel_packet.session_id, tunnel_packet.seq)] = asyncio.Event()
 
         for _ in range(3):
             self.send_icmp_packet(
@@ -160,15 +165,15 @@ class TCPoverICMPTunnel:
             )
             try:
                 await asyncio.wait_for(
-                    self.packets_requiring_ack[(tunnel_packet.session_id, tunnel_packet.seq)].wait(),
+                    self.packets_waiting_ack[(tunnel_packet.session_id, tunnel_packet.seq)].wait(),
                     self.RESPONSE_WAIT_TIME
                 )
-                self.packets_requiring_ack.pop((tunnel_packet.session_id, tunnel_packet.seq))
+                self.packets_waiting_ack.pop((tunnel_packet.session_id, tunnel_packet.seq))
                 return True
             except asyncio.TimeoutError:
-                log.debug(f'Failed recive or send ,resending:\n{tunnel_packet}')
+                log.debug(f'failed recive or send ,resending:\n{tunnel_packet}')
             # await asyncio.sleep(1)
-        log.info(f'Message failed to send:\n{tunnel_packet}\nRemoving client.')
+        log.info(f'packet failed to send:\n{tunnel_packet}\nRemoving client.')
         await self.timed_out_tcp_connections.put(tunnel_packet.session_id)
 
     def send_icmp_packet(
@@ -178,6 +183,8 @@ class TCPoverICMPTunnel:
     ):
         """
         Build and send an ICMP packet on the ICMP socket.
+        params: packet_type echo reply or request
+                payload: the tunnel_packet serlized to string
         """
         new_icmp_packet = icmp_packet.ICMPPacket(
             packet_type=packet_type,
@@ -185,4 +192,4 @@ class TCPoverICMPTunnel:
             sequence_number=self.PACKET_SEQUENCE_MARKER,
             payload=payload
         )
-        self.icmp_socket.sendto(new_icmp_packet, self.other_endpoint["ip"])
+        self.icmp_socket.sendto(new_icmp_packet, self.remote_endpoint["ip"])

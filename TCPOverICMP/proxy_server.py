@@ -18,7 +18,7 @@ class ProxyServer(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
         try:
             reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
         except ConnectionRefusedError:
-            log.debug(f'{tunnel_packet.destination_host}:{tunnel_packet.port} refused connection. tunnel not started.')
+            log.debug(f'connection.connect not started: {tunnel_packet.destination_host}:{tunnel_packet.port} refused connection.')
             return
 
         self.client_manager.add_client(
