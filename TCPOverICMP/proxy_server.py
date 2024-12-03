@@ -9,7 +9,7 @@ from proto import Packet
 log = logging.getLogger(__name__)
 
 
-class ProxyServer(tcp_over_icmp_tunnel.TunnelEndpoint):
+class ProxyServer(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
     @property
     def direction(self):
         return Packet.Direction.PROXY_CLIENT

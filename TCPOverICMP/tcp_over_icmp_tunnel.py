@@ -31,7 +31,7 @@ class TCPoverICMPTunnel:
 
     @property
     def direction(self):
-        """recognize the packet"""
+        """recognize the packet direction (implemented in the proxy_client,proxy_server)"""
         raise NotImplementedError()
 
     async def operate_start_operation(self, tunnel_packet: Packet):
