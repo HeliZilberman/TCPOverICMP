@@ -1,12 +1,14 @@
 import asyncio
 import logging
-import tunnel_endpoint, tcp_server
+# import TCPOverICMP.tcp_over_icmp_tunnel as tcp_over_icmp_tunnel, tcp_server
+import tcp_server
+import tcp_over_icmp_tunnel
 from proto import Packet
 
 log = logging.getLogger(__name__)
 
 
-class ProxyClient(tunnel_endpoint.TCPoverICMPTunnel):
+class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
     LOCALHOST = '127.0.0.1'
 
     def __init__(self, other_endpoint, port, destination_host, destination_port):

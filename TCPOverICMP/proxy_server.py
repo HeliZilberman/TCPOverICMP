@@ -2,13 +2,14 @@ import asyncio
 import logging
 # from TCPOverICMP import tunnel_endpoint
 # from TCPOverICMP.proto import Packet
-import tunnel_endpoint
+# import TCPOverICMP.tcp_over_icmp_tunnel as tcp_over_icmp_tunnel
+import tcp_over_icmp_tunnel
 from proto import Packet
 
 log = logging.getLogger(__name__)
 
 
-class ProxyServer(tunnel_endpoint.TCPoverICMPTunnel):
+class ProxyServer(tcp_over_icmp_tunnel.TunnelEndpoint):
     @property
     def direction(self):
         return Packet.Direction.PROXY_CLIENT
