@@ -3,6 +3,7 @@ import socket
 import exceptions
 
 
+
 class ICMPType:
     EchoReply = 0
     EchoRequest = 8
@@ -26,8 +27,8 @@ class ICMPPacket:
     def deserialize(cls, packet: bytes):
         """
         Build ICMPPacket based on a stream of bytes using ICMP_STRUCT.
-        :param packet: packet to deserialize into an ICMPPacket
-        :returns: an instance of ICMPPacket
+        params packet: packet to deserialize into an ICMPPacket
+        returns: an instance of ICMPPacket
         """
         # Unpack the ICMP header
         header = packet[:cls.ICMP_STRUCT.size]
@@ -76,8 +77,8 @@ class ICMPPacket:
     def compute_checksum(data: bytes):
         """
         Compute the checksum for the ICMP packet.
-        :param data: the packet data for which to compute the checksum
-        :returns: the checksum as an integer
+        params data: the packet data for which to compute the checksum
+        returns: the checksum as an integer
         """
         count_to = (len(data) // 2) * 2
         total = 0

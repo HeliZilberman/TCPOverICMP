@@ -12,7 +12,8 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
     LOCALHOST = '127.0.0.1'
 
     def __init__(self, remote_endpoint, port, destination_host, destination_port):
-        super(ProxyClient, self).__init__(remote_endpoint)
+
+        super(ProxyClient, self).__init__(Packet.Direction.PROXY_SERVER, remote_endpoint)
         log.info(f'proxy-server: {remote_endpoint}')
         log.info(f'forwarding to {destination_host}:{destination_port}')
         self.destination_host = destination_host
@@ -22,16 +23,13 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
         #proxy client corutines to run 
         self.constant_coroutines.append(self.tcp_server.server_loop())
         self.constant_coroutines.append(self.wait_for_new_connection())
+        
 
-    @property
-    def direction(self):
-        return Packet.Direction.PROXY_SERVER
-
-    async def operate_start_operation(self, tunnel_packet: Packet):
-        """
-        only finctions in the proxy server endpoint
-        """
-        log.debug(f'invalid START command. ignoring...\n{tunnel_packet}')
+    # async def start_session(self, tunnel_packet: Packet):
+    #     """
+    #     only finctions in the proxy server endpoint
+    #     """
+    #     log.debug(f'ignore start request from proxy server')
 
     async def wait_for_new_connection(self):
         """

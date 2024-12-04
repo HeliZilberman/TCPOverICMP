@@ -7,6 +7,9 @@ import logging
 log = logging.getLogger(__name__)
 
 class Server:
+    """
+    handles tcp connections
+    """
     def __init__(self, host: str, port: int, new_connections: asyncio.Queue):
         self.host = host
         self.port = port
@@ -21,7 +24,7 @@ class Server:
             family=socket.AF_INET
         )
         log.info(f'listening on {self.host}:{self.port}')
-        await server.server_loop()
+        await server.serve_forever()
 
     async def operate_new_tcp_connection(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         await self.new_connections.put((next(self.new_session_id), reader, writer))

@@ -10,20 +10,23 @@ log = logging.getLogger(__name__)
 
 
 class ProxyServer(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
-    @property
-    def direction(self):
-        return Packet.Direction.PROXY_CLIENT
+    
+    def __init__(self):
+        super(ProxyServer, self).__init__(Packet.Direction.PROXY_CLIENT)
 
-    async def operate_start_operation(self, tunnel_packet: Packet):
-        try:
-            reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
-        except ConnectionRefusedError:
-            log.debug(f'connection.connect not started: {tunnel_packet.destination_host}:{tunnel_packet.port} refused connection.')
-            return
+    # async def start_session(self, tunnel_packet: Packet):
+    #     """
+    #     operates a start operation, 
+    #     """
+    #     try:
+    #         reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
+    #     except ConnectionRefusedError:
+    #         log.debug(f'connection.connect not started: {tunnel_packet.destination_host}:{tunnel_packet.port} refused connection.')
+    #         return
 
-        self.client_manager.add_client(
-            session_id=tunnel_packet.session_id,
-            reader=reader,
-            writer=writer,
-        )
-        self.send_ack(tunnel_packet)
+    #     self.client_manager.add_client(
+    #         session_id=tunnel_packet.session_id,
+    #         reader=reader,
+    #         writer=writer,
+    #     )
+    #     self.send_ack(tunnel_packet)
