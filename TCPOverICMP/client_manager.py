@@ -39,7 +39,9 @@ class ClientManager:
         params: session_id: the client to add, reader ,writer to create a client session
         """
         if self.client_exists(session_id):
-            raise exceptions.ClientAlreadyExistsError()
+            # raise exceptions.ClientAlreadyExistsError()
+            log.debug(f'client already exists:{session_id}')
+            return
 
         new_client_session = ClientSession(session_id, reader, writer)
         new_task = asyncio.create_task(self.read_from_client(session_id))
@@ -53,7 +55,9 @@ class ClientManager:
         returns
         """
         if not self.client_exists(session_id):
-            raise exceptions.RemovingClientThatDoesntExistError(session_id, self.clients.keys())
+            # raise exceptions.RemovingClientThatDoesntExistError(session_id, self.clients.keys())
+            log.debug(f'remove client doesent exist exists:{session_id}')
+            return
 
         log.debug(f'removing client session: (session_id={session_id})')
         self.clients[session_id].task.cancel()

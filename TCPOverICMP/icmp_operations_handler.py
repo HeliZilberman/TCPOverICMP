@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import client_manager, icmp_socket, icmp_packet
-from proto import Packet
+from proto import ICMPTunnelPacket
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class ICMPOperationsHandler:
     def __init__(self,client_manager: client_manager.ClientManager,
                  icmp_socket:icmp_socket.ICMPSocket,
                  remote_endpoint: dict,
-                 direction: Packet.Direction,
+                 direction: ICMPTunnelPacket.Direction,
                  timed_out_tcp_connections
                  ):
         self.client_manager = client_manager
@@ -23,73 +23,73 @@ class ICMPOperationsHandler:
         self.timed_out_tcp_connections = timed_out_tcp_connections
         self.packets_waiting_ack = {}
         self.operations = {
-            #Packet.Operation.START: self.start_session,
-            Packet.Operation.TERMINATE: self.terminate_session,
-            Packet.Operation.DATA_TRANSFER: self.handle_data,
-            Packet.Operation.ACK: self.handle_ack,
+            #ICMPTunnelPacket.Action.START: self.start_session,
+            ICMPTunnelPacket.Action.TERMINATE: self.terminate_session,
+            ICMPTunnelPacket.Action.DATA_TRANSFER: self.handle_data,
+            ICMPTunnelPacket.Action.ACK: self.handle_ack,
         }
-        if self.direction == Packet.Direction.PROXY_CLIENT:
-            self.operations[Packet.Operation.START] = self.start_session
+        if self.direction == ICMPTunnelPacket.Direction.PROXY_CLIENT:
+            self.operations[ICMPTunnelPacket.Action.START] = self.start_session
         
-    async def execute_operation(self, tunnel_packet: Packet):
-        await self.operations[tunnel_packet.operation](tunnel_packet)
+    async def execute_operation(self, icmp_tunnel_packet: ICMPTunnelPacket):
+        await self.operations[icmp_tunnel_packet.action](icmp_tunnel_packet)
 
 
-    async def start_session(self, tunnel_packet: Packet):
+    async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
-        operates a start operation, 
+        operates a start action, 
         """
         try:
-            reader, writer = await asyncio.open_connection(tunnel_packet.destination_host, tunnel_packet.port)
+            reader, writer = await asyncio.open_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
         except ConnectionRefusedError:
-            log.debug(f'connection.connect not started: {tunnel_packet.destination_host}:{tunnel_packet.port} refused connection.')
+            log.debug(f'connection.connect not started: {icmp_tunnel_packet.destination_host}:{icmp_tunnel_packet.port} refused connection.')
             return
 
         self.client_manager.add_client(
-            session_id=tunnel_packet.session_id,
+            session_id=icmp_tunnel_packet.session_id,
             reader=reader,
             writer=writer,
         )
-        self.send_ack(tunnel_packet)
-    async def terminate_session(self, tunnel_packet: Packet):
+        self.send_ack(icmp_tunnel_packet)
+    async def terminate_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
-        operates the TERMINATE operation. removes the client and send ack for terminate.
+        operates the TERMINATE action. removes the client and send ack for terminate.
         """
-        await self.client_manager.remove_client(tunnel_packet.session_id)
-        self.send_ack(tunnel_packet)
+        await self.client_manager.remove_client(icmp_tunnel_packet.session_id)
+        self.send_ack(icmp_tunnel_packet)
     
-    async def handle_data(self, tunnel_packet: Packet):
+    async def handle_data(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
-        operate  data operation. fowards to client and sends ack 
-        params: tunnel_packet: used to foward to client the data
+        operate  data action. fowards to client and sends ack 
+        params: icmp_tunnel_packet: used to foward to client the data
         """
         await self.client_manager.write_to_client(
-            tunnel_packet.session_id,
-            tunnel_packet.seq,
-            tunnel_packet.payload
+            icmp_tunnel_packet.session_id,
+            icmp_tunnel_packet.seq,
+            icmp_tunnel_packet.payload
         )
-        self.send_ack(tunnel_packet)
+        self.send_ack(icmp_tunnel_packet)
 
 
-    async def handle_ack(self, tunnel_packet: Packet):
+    async def handle_ack(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
-        operate an ACK operation.
+        operate an ACK action.
         the packet is recognized by the session_id and the sequence of packet 
         params: tunnel packet 
         """
-        packet_id = (tunnel_packet.session_id, tunnel_packet.seq)
+        packet_id = (icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)
         if packet_id in self.packets_waiting_ack:
             self.packets_waiting_ack[packet_id].set()
 
-    def send_ack(self, tunnel_packet: Packet):
+    def send_ack(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
         Send an ACK for a packet using EchoReply.
         used by proxy-server
         """
-        ack_tunnel_packet = Packet(
-            session_id=tunnel_packet.session_id,
-            seq=tunnel_packet.seq,
-            operation=Packet.Operation.ACK,
+        ack_tunnel_packet = ICMPTunnelPacket(
+            session_id=icmp_tunnel_packet.session_id,
+            seq=icmp_tunnel_packet.seq,
+            action=ICMPTunnelPacket.Action.ACK,
             direction=self.direction,
         )
         self.send_icmp_packet(
@@ -104,7 +104,7 @@ class ICMPOperationsHandler:
         """
         Build and send an ICMP packet on the ICMP socket.
         params: packet_type echo reply or request
-                payload: the tunnel_packet serlized to string
+                payload: the icmp_tunnel_packet serlized to string
         """
         new_icmp_packet = icmp_packet.ICMPPacket(
             packet_type=packet_type,
@@ -114,27 +114,27 @@ class ICMPOperationsHandler:
         )
         self.icmp_socket.sendto(new_icmp_packet, self.remote_endpoint["ip"])
 
-    async def send_icmp_packet_wait_ack(self, tunnel_packet: Packet):
+    async def send_icmp_packet_wait_ack(self, icmp_tunnel_packet: ICMPTunnelPacket):
             """
             Send an ICMP packet and ensure it is acknowledged. Retry up to 3 times if necessary.
-            params: tunnel_packet the packet sent it the icmp socket
+            params: icmp_tunnel_packet the packet sent it the icmp socket
             """
-            self.packets_waiting_ack[(tunnel_packet.session_id, tunnel_packet.seq)] = asyncio.Event()
+            self.packets_waiting_ack[(icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)] = asyncio.Event()
 
             for _ in range(3):
                 self.send_icmp_packet(
                     icmp_packet.ICMPType.EchoRequest,
-                    tunnel_packet.SerializeToString(),
+                    icmp_tunnel_packet.SerializeToString(),
                 )
                 try:
                     await asyncio.wait_for(
-                        self.packets_waiting_ack[(tunnel_packet.session_id, tunnel_packet.seq)].wait(),
+                        self.packets_waiting_ack[(icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)].wait(),
                         self.RESPONSE_WAIT_TIME
                     )
-                    self.packets_waiting_ack.pop((tunnel_packet.session_id, tunnel_packet.seq))
+                    self.packets_waiting_ack.pop((icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq))
                     return True
                 except asyncio.TimeoutError:
-                    log.debug(f'failed recive or send ,resending:\n{tunnel_packet}')
+                    log.debug(f'failed recive or send ,resending:\n{icmp_tunnel_packet}')
                 # await asyncio.sleep(1)
-            log.info(f'packet failed to send:\n{tunnel_packet}\nRemoving client.')
-            await self.timed_out_tcp_connections.put(tunnel_packet.session_id)
+            log.info(f'packet failed to send:\n{icmp_tunnel_packet}\nRemoving client.')
+            await self.timed_out_tcp_connections.put(icmp_tunnel_packet.session_id)

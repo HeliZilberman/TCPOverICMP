@@ -13,17 +13,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpacket.proto\"\xa2\x02\n\x06Packet\x12\x12\n\nsession_id\x18\x01 \x01(\r\x12\x0b\n\x03seq\x18\x02 \x01(\r\x12$\n\toperation\x18\x03 \x01(\x0e\x32\x11.Packet.Operation\x12$\n\tdirection\x18\x04 \x01(\x0e\x32\x11.Packet.Direction\x12\x18\n\x10\x64\x65stination_host\x18\x05 \x01(\t\x12\x0c\n\x04port\x18\x06 \x01(\r\x12\x0f\n\x07payload\x18\x07 \x01(\x0c\"A\n\tOperation\x12\t\n\x05START\x10\x00\x12\r\n\tTERMINATE\x10\x01\x12\x11\n\rDATA_TRANSFER\x10\x02\x12\x07\n\x03\x41\x43K\x10\x03\"/\n\tDirection\x12\x10\n\x0cPROXY_CLIENT\x10\x00\x12\x10\n\x0cPROXY_SERVER\x10\x01')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cpacket.proto\"\xb7\x02\n\x10ICMPTunnelPacket\x12\x12\n\nsession_id\x18\x01 \x02(\r\x12\x0b\n\x03seq\x18\x02 \x01(\r\x12(\n\x06\x61\x63tion\x18\x03 \x02(\x0e\x32\x18.ICMPTunnelPacket.Action\x12.\n\tdirection\x18\x04 \x02(\x0e\x32\x1b.ICMPTunnelPacket.Direction\x12\x18\n\x10\x64\x65stination_host\x18\x05 \x01(\t\x12\x0c\n\x04port\x18\x06 \x01(\r\x12\x0f\n\x07payload\x18\x07 \x01(\x0c\">\n\x06\x41\x63tion\x12\t\n\x05START\x10\x00\x12\r\n\tTERMINATE\x10\x01\x12\x11\n\rDATA_TRANSFER\x10\x02\x12\x07\n\x03\x41\x43K\x10\x03\"/\n\tDirection\x12\x10\n\x0cPROXY_CLIENT\x10\x00\x12\x10\n\x0cPROXY_SERVER\x10\x01')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'packet_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_PACKET']._serialized_start=17
-  _globals['_PACKET']._serialized_end=307
-  _globals['_PACKET_OPERATION']._serialized_start=193
-  _globals['_PACKET_OPERATION']._serialized_end=258
-  _globals['_PACKET_DIRECTION']._serialized_start=260
-  _globals['_PACKET_DIRECTION']._serialized_end=307
+  _globals['_ICMPTUNNELPACKET']._serialized_start=17
+  _globals['_ICMPTUNNELPACKET']._serialized_end=328
+  _globals['_ICMPTUNNELPACKET_ACTION']._serialized_start=217
+  _globals['_ICMPTUNNELPACKET_ACTION']._serialized_end=279
+  _globals['_ICMPTUNNELPACKET_DIRECTION']._serialized_start=281
+  _globals['_ICMPTUNNELPACKET_DIRECTION']._serialized_end=328
 # @@protoc_insertion_point(module_scope)

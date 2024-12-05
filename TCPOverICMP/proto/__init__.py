@@ -1,1 +1,1 @@
-from .packet_pb2 import Packet
+from .packet_pb2 import ICMPTunnelPacket

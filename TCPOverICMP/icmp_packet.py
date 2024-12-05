@@ -11,7 +11,7 @@ class ICMPType:
 
 class ICMPPacket:
     """
-    ICMP Packet implementation - uisng struct to seralize bytes 
+    ICMP ICMPTunnelPacket implementation - uisng struct to seralize bytes 
     """
 
     CODE = 0

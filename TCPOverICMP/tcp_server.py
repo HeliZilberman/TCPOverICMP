@@ -10,10 +10,10 @@ class Server:
     """
     handles tcp connections
     """
-    def __init__(self, host: str, port: int, new_connections: asyncio.Queue):
+    def __init__(self, host: str, port: int, incoming_tcp_connections: asyncio.Queue):
         self.host = host
         self.port = port
-        self.new_connections = new_connections
+        self.incoming_tcp_connections = incoming_tcp_connections
         self.new_session_id = itertools.count()
 
     async def server_loop(self):
@@ -27,5 +27,5 @@ class Server:
         await server.serve_forever()
 
     async def operate_new_tcp_connection(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        await self.new_connections.put((next(self.new_session_id), reader, writer))
+        await self.incoming_tcp_connections.put((next(self.new_session_id), reader, writer))
         log.info(f"new TCP connection {self.new_session_id}")

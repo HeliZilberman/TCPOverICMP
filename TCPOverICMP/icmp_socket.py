@@ -50,6 +50,13 @@ class ICMPSocket:
                 source_ip = socket.inet_ntoa(iph[8]) 
                 log.info(f"remote endpoint: {source_ip}")
                 remote_endpoint["ip"] = source_ip
+
+                flags_offset = iph[4]
+                flags = (flags_offset >> 13) & 0x7
+                fragment_offset = flags_offset & 0x1FFF
+                mf_flag = flags & 0x1
+                if mf_flag == 1 or fragment_offset > 0:
+                    log.info(f'the recived packet is fragmented fragment_offset:{fragment_offset}')
             return ICMPPacket.deserialize(raw_packet)
         except exceptions.InvalidICMPCode:
             log.debug("Invalid ICMP code detected, skipping packet.")
