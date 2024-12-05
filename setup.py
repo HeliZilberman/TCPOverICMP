@@ -18,4 +18,5 @@ setup(
             'proxy_server = TCPOverICMP.proxy_server_main:run_async_loop',
         ],
     },
+    python_requires=">=3.8",
 )
