@@ -5,7 +5,7 @@ import logging
 from icmp_packet import ICMPPacket  
 import struct
 import exceptions
-
+#ff
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 

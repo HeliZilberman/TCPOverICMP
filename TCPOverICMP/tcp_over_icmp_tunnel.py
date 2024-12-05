@@ -4,14 +4,11 @@ import client_manager, icmp_socket
 import icmp_operations_handler 
 from proto import ICMPTunnelPacket
 
+#ff
 
 log = logging.getLogger(__name__)
 
 class TCPoverICMPTunnel:
-    #special identifiers for debugging in wireshark
-    ICMP_PACKET_IDENTIFIER = 0xbeef
-    PACKET_SEQUENCE_MARKER = 0xdead
-
     def __init__(self,direction: ICMPTunnelPacket.Direction , remote_endpoint=None):
         self.remote_endpoint = {"ip": remote_endpoint}
         self.direction = direction
