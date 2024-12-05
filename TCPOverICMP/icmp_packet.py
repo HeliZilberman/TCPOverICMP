@@ -1,6 +1,6 @@
 import struct
 import socket
-import exceptions
+from TCPOverICMP import exceptions
 
 
 

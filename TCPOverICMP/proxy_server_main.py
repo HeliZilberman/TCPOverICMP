@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import  proxy_server
+from TCPOverICMP import  proxy_server
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
@@ -8,6 +8,8 @@ log = logging.getLogger(__name__)
 async def main():
     await proxy_server.ProxyServer().run()
 
+def run_async_loop():
+    asyncio.run(main())
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    run_async_loop()

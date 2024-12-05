@@ -1,10 +1,8 @@
 import asyncio
 import logging
-import client_manager, icmp_socket 
-import icmp_operations_handler 
-from proto import ICMPTunnelPacket
+from TCPOverICMP import client_manager, icmp_socket,icmp_operations_handler 
+from TCPOverICMP.proto import ICMPTunnelPacket
 
-#ff
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +16,6 @@ class TCPoverICMPTunnel:
         self.packets_from_tcp_channel = asyncio.Queue()
         self.timed_out_tcp_connections = asyncio.Queue()
         self.client_manager = client_manager.ClientManager(self.timed_out_tcp_connections, self.packets_from_tcp_channel)
-        # self.packets_waiting_ack = {}
 
         self.operations_handler = icmp_operations_handler.ICMPOperationsHandler(self.client_manager,
                                                                        self.icmp_socket,
@@ -31,41 +28,6 @@ class TCPoverICMPTunnel:
             self.wait_timed_out_connections(),
             self.icmp_socket.wait_for_incoming_packet(self.remote_endpoint),
         ]
-
-    # async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
-    #     """proxy server implements """
-    #     raise NotImplementedError()
-    
-    # async def handle_data(self, icmp_tunnel_packet: ICMPTunnelPacket):
-    #     """
-    #     operate  data action. fowards to client and sends ack 
-    #     params: icmp_tunnel_packet  the packet that is sent to client ,
-    #     """
-    #     await self.client_manager.write_to_client(
-    #         icmp_tunnel_packet.session_id,
-    #         icmp_tunnel_packet.seq,
-    #         icmp_tunnel_packet.payload
-    #     )
-    #     self.send_ack(icmp_tunnel_packet)
-
-    # async def terminate_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
-    #     """
-    #     operates the TERMINATE action. removes the client and send ack for terminate.
-    #     """
-    #     await self.client_manager.remove_client(icmp_tunnel_packet.session_id)
-    #     self.send_ack(icmp_tunnel_packet)
-
-    
-
-    # async def handle_ack(self, icmp_tunnel_packet: ICMPTunnelPacket):
-    #     """
-    #     operate an ACK action.
-    #     the packet is recognized by the session_id and the sequence of packet 
-    #     params: tunnel packet 
-    #     """
-    #     packet_id = (icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)
-    #     if packet_id in self.packets_waiting_ack:
-    #         self.packets_waiting_ack[packet_id].set()
 
     async def run(self):
         """

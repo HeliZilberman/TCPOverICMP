@@ -1,7 +1,7 @@
 import asyncio
 import logging
-import exceptions
-from client_session import ClientSession
+from TCPOverICMP import exceptions
+from TCPOverICMP.client_session import ClientSession
 log = logging.getLogger(__name__)
 
 

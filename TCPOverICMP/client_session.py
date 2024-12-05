@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import itertools
-import exceptions
+from TCPOverICMP import exceptions
 
 log = logging.getLogger(__name__)
 

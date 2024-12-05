@@ -34,8 +34,6 @@ coverage.xml
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Compiled C extensions
-*.so
 
 # Distribution/build files
 build/

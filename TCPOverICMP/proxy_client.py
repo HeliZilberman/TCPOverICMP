@@ -1,9 +1,9 @@
 import asyncio
 import logging
 # import TCPOverICMP.tcp_over_icmp_tunnel as tcp_over_icmp_tunnel, tcp_server
-import tcp_server
-import tcp_over_icmp_tunnel
-from proto import ICMPTunnelPacket
+from TCPOverICMP import tcp_server
+from TCPOverICMP import tcp_over_icmp_tunnel
+from TCPOverICMP.proto import ICMPTunnelPacket
 
 log = logging.getLogger(__name__)
 
@@ -23,13 +23,6 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
         #proxy client corutines to run 
         self.main_coroutines.append(self.tcp_server.server_loop())
         self.main_coroutines.append(self.wait_for_new_connection())
-        
-
-    # async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
-    #     """
-    #     only finctions in the proxy server endpoint
-    #     """
-    #     log.debug(f'ignore start request from proxy server')
 
     async def wait_for_new_connection(self):
         """

@@ -1,7 +1,7 @@
 import asyncio
 import logging
-import client_manager, icmp_socket, icmp_packet
-from proto import ICMPTunnelPacket
+from TCPOverICMP import client_manager, icmp_socket, icmp_packet
+from TCPOverICMP.proto import ICMPTunnelPacket
 
 log = logging.getLogger(__name__)
 

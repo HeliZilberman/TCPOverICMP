@@ -2,10 +2,9 @@ import sys
 import asyncio
 import socket
 import logging
-from icmp_packet import ICMPPacket  
+from TCPOverICMP.icmp_packet import ICMPPacket  
 import struct
-import exceptions
-#ff
+from TCPOverICMP import exceptions
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
