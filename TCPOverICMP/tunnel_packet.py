@@ -25,7 +25,7 @@ class ICMPTunnelPacket:
     Tunnel Packet implementation using struct for serialization and deserialization.
     Handles optional fields gracefully.
     """
-    TUNNEL_STRUCT = struct.Struct('>IIHHI')  # client_id, seq, action, direction, port
+    TUNNEL_STRUCT = struct.Struct('>IIIHHI')  # client_id, seq, action, direction, port,destination_host
 
 
     def __init__(self, session_id, action, direction, seq=0, destination_host='', port=0, payload=b''):
@@ -56,31 +56,31 @@ class ICMPTunnelPacket:
         header = self.TUNNEL_STRUCT.pack(
             self.session_id,
             self.seq,
+            ip_length,
             self.action.value,
             self.direction.value,
             self.port
         )
-        return struct.pack(f'>{ip_length}s{len(self.payload)}s', ip_bytes, self.payload) + header
-
+        return header + ip_bytes + self.payload
+    
     @classmethod
     def deserialize(cls, packet):
         """
         Deserialize bytes into a TunnelPacket.
         """
         header_size = cls.TUNNEL_STRUCT.size
-        header = packet[-header_size:]
-        session_id, seq, action, direction, port = cls.TUNNEL_STRUCT.unpack(header)
+        header = packet[:header_size]
+        session_id, seq, ip_length, action, direction, port = cls.TUNNEL_STRUCT.unpack(header)
         action = Action(action)
         direction = Direction(direction)
 
-        ip_payload_size = len(packet) - header_size
-        ip_format = f'>{ip_payload_size}s'
-        ip_payload = struct.unpack(ip_format, packet[:-header_size])
-        destination_host = ip_payload[0].decode('utf-8')
-        payload = ip_payload[1]
+        ip_bytes = packet[header_size:header_size + ip_length]
+        destination_host = ip_bytes.decode('utf-8')
 
-        return cls(session_id, seq, action, direction, destination_host, port, payload)
+        payload = packet[header_size + ip_length:]  # Remaining bytes are the payload
 
+        return cls(session_id, action, direction, seq, destination_host, port, payload)
+    
 
     def __repr__(self):
         return (
