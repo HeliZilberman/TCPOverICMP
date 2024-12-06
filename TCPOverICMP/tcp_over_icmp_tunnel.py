@@ -1,9 +1,6 @@
 import asyncio
 import logging
 from TCPOverICMP import client_manager, icmp_socket,icmp_operations_handler 
-
-
-# from TCPOverICMP.proto import ICMPTunnelPacket
 from TCPOverICMP.tunnel_packet import ICMPTunnelPacket, Action, Direction
 
 import time
@@ -12,10 +9,10 @@ log = logging.getLogger(__name__)
 
 class TCPoverICMPTunnel:
     def __init__(self,
-                 direction,
+                 direction: Direction,
                   remote_endpoint=None):
         self.remote_endpoint = {"ip": remote_endpoint}
-        self.direction = direction
+        self.direction = direction 
         self.incoming_from_icmp_channel = asyncio.Queue()
         self.icmp_socket = icmp_socket.ICMPSocket(self.incoming_from_icmp_channel)
 
@@ -34,6 +31,7 @@ class TCPoverICMPTunnel:
             self.wait_timed_out_connections(),
             self.icmp_socket.wait_for_incoming_packet(self.remote_endpoint),
         ]
+        
 
     async def run(self):
         """
@@ -49,13 +47,6 @@ class TCPoverICMPTunnel:
         while True:
             data, session_id, seq = await self.packets_from_tcp_channel.get()
 
-            # new_tunnel_packet = ICMPTunnelPacket(
-            #     session_id=session_id,
-            #     seq=seq,
-            #     action=ICMPTunnelPacket.Action.DATA_TRANSFER,
-            #     direction=self.direction,
-            #     payload=data,
-            # )
             new_tunnel_packet = ICMPTunnelPacket(
                 session_id=session_id,
                 seq=seq,
@@ -74,20 +65,19 @@ class TCPoverICMPTunnel:
         """
         while True:
             new_icmp_packet = await self.incoming_from_icmp_channel.get()
-            if new_icmp_packet.identifier != self.operations_handler.ICMP_PACKET_IDENTIFIER or new_icmp_packet.sequence_number != self.operations_handler.PACKET_SEQUENCE_MARKER:
+            if new_icmp_packet.identifier != self.operations_handler.ICMP_PACKET_IDENTIFIER:
                 log.debug(f'Invalid ICMP project identifiers')
                 continue
 
-            # icmp_tunnel_packet = ICMPTunnelPacket()
-            # icmp_tunnel_packet.ParseFromString(new_icmp_packet.payload)
             icmp_tunnel_packet = ICMPTunnelPacket.deserialize(new_icmp_packet.payload)
 
             
-            log.debug(f'Received on {time.time()}: \n{icmp_tunnel_packet}')
+            log.debug(f'Received: \n{icmp_tunnel_packet}')
 
             if icmp_tunnel_packet.direction == self.direction:
                 log.debug('ignore packet to same direction')
                 continue
+            # if new_icmp_packet != self.operations_handler.PACKET_SEQUENCE_MARKER:
 
             #execute the packet action 
             await self.operations_handler.execute_operation(icmp_tunnel_packet=icmp_tunnel_packet) 

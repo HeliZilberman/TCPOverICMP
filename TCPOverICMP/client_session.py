@@ -47,8 +47,8 @@ class ClientSession:
     async def write(self, seq: int, data: bytes):
         """
         write a packet to the current client, sequentially
-        :param seq: the sequence number of the packet. this enables packets to be written in sequence, without duplicates
-        :param data: the data to be written
+        @param seq: the sequence number of the packet. this enables packets to be written in sequence, without duplicates
+        @param data: the data to be written
         """
         if self.writer.is_closing():
             raise exceptions.ClientClosedConnectionError()

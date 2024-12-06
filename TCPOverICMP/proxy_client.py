@@ -33,14 +33,6 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
         """
         while True:
             session_id, reader, writer = await self.incoming_tcp_connections.get()
-
-            # new_tunnel_packet = ICMPTunnelPacket(
-            #     session_id=session_id,
-            #     action=ICMPTunnelPacket.Action.START,
-            #     direction=self.direction,
-            #     destination_host=self.destination_host,
-            #     port=self.destination_port,
-            # )
             new_tunnel_packet = ICMPTunnelPacket(
                 session_id=session_id,
                 action=Action.START,

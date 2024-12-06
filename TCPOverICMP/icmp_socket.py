@@ -32,7 +32,7 @@ class ICMPSocket:
     async def recv(self, remote_endpoint: dict, buffersize: int = SOCKET_BUFFER_SIZE):
         """
         recives an icmp packet
-        params buffersize: the max data to recive (bytes)
+        @param buffersize: the max data to recive (bytes)
         returns  an ICMP packet that was sniffed.
         """
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
@@ -75,5 +75,5 @@ class ICMPSocket:
         @param packet An instance of ICMPPacket to send.
         @param destination The IP address of the destination.
         """
-        log.debug(f'Sending packet on {time.time()} \n the tunnel packet: \n{packet.payload} to {destination}')
+        log.debug(f'Sending packet: \n{packet.payload} to {destination}')
         self._icmp_socket.sendto(packet.serialize(), (destination, 0))

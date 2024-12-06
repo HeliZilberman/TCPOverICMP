@@ -17,7 +17,7 @@ class ICMPOperationsHandler:
     def __init__(self,client_manager: client_manager.ClientManager,
                  icmp_socket:icmp_socket.ICMPSocket,
                  remote_endpoint: dict,
-                 direction,
+                 direction: Direction,
                  timed_out_tcp_connections
                  ):
         self.client_manager = client_manager

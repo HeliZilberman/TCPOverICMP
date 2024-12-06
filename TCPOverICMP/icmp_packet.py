@@ -97,7 +97,7 @@ class ICMPPacket:
     def compute_checksum(data: bytes):
         """
         Compute the checksum for the ICMP packet.
-        params data: the packet data for which to compute the checksum
+        @param data: the packet data for which to compute the checksum
         returns: the checksum as an integer
         """
         count_to = (len(data) // 2) * 2

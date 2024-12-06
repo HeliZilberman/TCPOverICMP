@@ -19,7 +19,6 @@ class Direction(Enum):
     PROXY_SERVER = 0
     PROXY_CLIENT = 1
 
-#zzzzzzz
 class ICMPTunnelPacket:
     """
     Tunnel Packet implementation using struct for serialization and deserialization.
@@ -31,13 +30,13 @@ class ICMPTunnelPacket:
     def __init__(self, session_id, action, direction, seq=0, destination_host='', port=0, payload=b''):
         """
         Initialize a ICMPTunnelPacket.
-        :param session_id: Mandatory. ID of the session.
-        :param action: Mandatory. Instance of Action Enum.
-        :param direction: Mandatory. Instance of Direction Enum.
-        :param seq: Optional. Sequence number.
-        :param destination_host: Optional. Destination host as a string.
-        :param port: Optional. Destination port as an integer.
-        :param payload: Optional. Payload as bytes.
+        @param session_id: Mandatory. ID of the session.
+        @param action: Mandatory. Instance of Action Enum.
+        @param direction: Mandatory. Instance of Direction Enum.
+        @param seq: Optional. Sequence number.
+        @param destination_host: Optional. Destination host as a string.
+        @param port: Optional. Destination port as an integer.
+        @param payload: Optional. Payload as bytes.
         """
         self.session_id = session_id
         self.action = action  
@@ -83,17 +82,28 @@ class ICMPTunnelPacket:
     
 
     def __repr__(self):
-     return (
-        f"TunnelPacket(\n"
+     base_repr = (
+        f"ICMPTunnelPacket(\n"
         f"    session_id={self.session_id},\n"
         f"    action={self.action.name},\n"
         f"    direction={self.direction.name},\n"
-        f"    seq={self.seq},\n"
-        f"    destination_host='{self.destination_host}',\n"
-        f"    port={self.port},\n"
-        f"    payload={self.payload}\n"
-        f")"
      )
+
+     if self.action == Action.DATA_TRANSFER:
+        return (
+            base_repr +
+            f"    payload={self.payload}\n"
+            f")"
+        )
+     elif self.action == Action.START:
+        return (
+            base_repr +
+            f"    destination_host='{self.destination_host}',\n"
+            f"    port={self.port}\n"
+            f")"
+        )
+     else:
+        return base_repr + ")"
 
 
   
