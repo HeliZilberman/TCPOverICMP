@@ -25,7 +25,8 @@ class ICMPTunnelPacket:
     Tunnel Packet implementation using struct for serialization and deserialization.
     Handles optional fields gracefully.
     """
-    TUNNEL_STRUCT = struct.Struct('>IHH')  # session_id, action, direction
+    TUNNEL_STRUCT = struct.Struct('>IIHHI')  # client_id, seq, action, direction, port
+
 
     def __init__(self, session_id, action, direction, seq=0, destination_host='', port=0, payload=b''):
         """
@@ -48,55 +49,38 @@ class ICMPTunnelPacket:
 
     def serialize(self):
         """
-        Serialize the ICMPTunnelPacket into bytes using struct.
-        Includes optional fields only if they are present.
+        Serialize the TunnelPacket into bytes using struct.
         """
-        destination_host_bytes = self.destination_host.encode('utf-8')
-        host_length = len(destination_host_bytes)
-
-        # Serialize the mandatory fields
+        ip_bytes = self.destination_host.encode('utf-8')  # Encode the IP as bytes
+        ip_length = len(ip_bytes)
         header = self.TUNNEL_STRUCT.pack(
             self.session_id,
-            self.action.value,
-            self.direction.value
-        )
-
-        # Serialize the optional fields
-        optional_fields = struct.pack(
-            f'>I{host_length}s{len(self.payload)}s',
             self.seq,
-            destination_host_bytes,
-            self.payload
+            self.action.value,
+            self.direction.value,
+            self.port
         )
-
-        return header + optional_fields
+        return struct.pack(f'>{ip_length}s{len(self.payload)}s', ip_bytes, self.payload) + header
 
     @classmethod
     def deserialize(cls, packet):
         """
-        Deserialize bytes into a ICMPTunnelPacket, handling optional fields.
+        Deserialize bytes into a TunnelPacket.
         """
-        mandatory_size = cls.TUNNEL_STRUCT.size
-        mandatory_data = packet[:mandatory_size]
-        session_id, action, direction = cls.TUNNEL_STRUCT.unpack(mandatory_data)
-
-        # Convert enums back
+        header_size = cls.TUNNEL_STRUCT.size
+        header = packet[-header_size:]
+        session_id, seq, action, direction, port = cls.TUNNEL_STRUCT.unpack(header)
         action = Action(action)
         direction = Direction(direction)
 
-        # Handle optional fields
-        optional_data = packet[mandatory_size:]
-        if optional_data:
-            host_len = len(optional_data) - 8  # Subtract seq (4 bytes) and payload size
-            optional_format = f'>I{host_len}s{len(optional_data) - host_len - 4}s'
-            seq, destination_host_bytes, payload = struct.unpack(optional_format, optional_data)
-            destination_host = destination_host_bytes.decode('utf-8')
-        else:
-            seq = 0
-            destination_host = ''
-            payload = b''
+        ip_payload_size = len(packet) - header_size
+        ip_format = f'>{ip_payload_size}s'
+        ip_payload = struct.unpack(ip_format, packet[:-header_size])
+        destination_host = ip_payload[0].decode('utf-8')
+        payload = ip_payload[1]
 
-        return cls(session_id, action, direction, seq, destination_host, payload)
+        return cls(session_id, seq, action, direction, destination_host, port, payload)
+
 
     def __repr__(self):
         return (
