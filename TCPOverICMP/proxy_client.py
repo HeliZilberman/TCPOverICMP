@@ -1,9 +1,11 @@
 import asyncio
 import logging
-# import TCPOverICMP.tcp_over_icmp_tunnel as tcp_over_icmp_tunnel, tcp_server
 from TCPOverICMP import tcp_server
 from TCPOverICMP import tcp_over_icmp_tunnel
-from TCPOverICMP.proto import ICMPTunnelPacket
+
+
+# from TCPOverICMP.proto import ICMPTunnelPacket
+from TCPOverICMP.tunnel_packet import ICMPTunnelPacket, Action, Direction
 
 log = logging.getLogger(__name__)
 
@@ -13,9 +15,10 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
 
     def __init__(self, remote_endpoint, port, destination_host, destination_port):
 
-        super(ProxyClient, self).__init__(ICMPTunnelPacket.Direction.PROXY_SERVER, remote_endpoint)
+        # super(ProxyClient, self).__init__(ICMPTunnelPacket.Direction.PROXY_SERVER, remote_endpoint)
+        super(ProxyClient, self).__init__(Direction.PROXY_SERVER, remote_endpoint)
         log.info(f'proxy-server: {remote_endpoint}')
-        log.info(f'forwarding to {destination_host}:{destination_port}')
+        log.info(f'transmiting to {destination_host}:{destination_port}')
         self.destination_host = destination_host
         self.destination_port = destination_port
         self.incoming_tcp_connections = asyncio.Queue()
@@ -31,13 +34,22 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
         while True:
             session_id, reader, writer = await self.incoming_tcp_connections.get()
 
+            # new_tunnel_packet = ICMPTunnelPacket(
+            #     session_id=session_id,
+            #     action=ICMPTunnelPacket.Action.START,
+            #     direction=self.direction,
+            #     destination_host=self.destination_host,
+            #     port=self.destination_port,
+            # )
             new_tunnel_packet = ICMPTunnelPacket(
                 session_id=session_id,
-                action=ICMPTunnelPacket.Action.START,
+                action=Action.START,
                 direction=self.direction,
                 destination_host=self.destination_host,
                 port=self.destination_port,
             )
+
+
             # only add client if other endpoint acked.
             if await self.operations_handler.send_icmp_packet_wait_ack(new_tunnel_packet):
                 self.client_manager.add_client(session_id, reader, writer)

@@ -1,7 +1,11 @@
 import asyncio
 import logging
 from TCPOverICMP import client_manager, icmp_socket, icmp_packet
-from TCPOverICMP.proto import ICMPTunnelPacket
+
+
+#from TCPOverICMP.proto import ICMPTunnelPacket
+from TCPOverICMP.tunnel_packet import ICMPTunnelPacket, Action, Direction
+
 
 log = logging.getLogger(__name__)
 
@@ -13,7 +17,7 @@ class ICMPOperationsHandler:
     def __init__(self,client_manager: client_manager.ClientManager,
                  icmp_socket:icmp_socket.ICMPSocket,
                  remote_endpoint: dict,
-                 direction: ICMPTunnelPacket.Direction,
+                 direction,
                  timed_out_tcp_connections
                  ):
         self.client_manager = client_manager
@@ -22,14 +26,21 @@ class ICMPOperationsHandler:
         self.direction = direction
         self.timed_out_tcp_connections = timed_out_tcp_connections
         self.packets_waiting_ack = {}
+        # self.operations = {
+        #     ICMPTunnelPacket.Action.TERMINATE: self.terminate_session,
+        #     ICMPTunnelPacket.Action.DATA_TRANSFER: self.handle_data,
+        #     ICMPTunnelPacket.Action.ACK: self.handle_ack,
+        # }
+        # if self.direction == ICMPTunnelPacket.Direction.PROXY_CLIENT:
+        #     self.operations[ICMPTunnelPacket.Action.START] = self.start_session
+
         self.operations = {
-            #ICMPTunnelPacket.Action.START: self.start_session,
-            ICMPTunnelPacket.Action.TERMINATE: self.terminate_session,
-            ICMPTunnelPacket.Action.DATA_TRANSFER: self.handle_data,
-            ICMPTunnelPacket.Action.ACK: self.handle_ack,
+            Action.TERMINATE: self.terminate_session,
+            Action.DATA_TRANSFER: self.handle_data,
+            Action.ACK: self.handle_ack,
         }
-        if self.direction == ICMPTunnelPacket.Direction.PROXY_CLIENT:
-            self.operations[ICMPTunnelPacket.Action.START] = self.start_session
+        if self.direction == Direction.PROXY_CLIENT:
+            self.operations[Action.START] = self.start_session
         
     async def execute_operation(self, icmp_tunnel_packet: ICMPTunnelPacket):
         await self.operations[icmp_tunnel_packet.action](icmp_tunnel_packet)
@@ -61,7 +72,7 @@ class ICMPOperationsHandler:
     async def handle_data(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
         operate  data action. fowards to client and sends ack 
-        params: icmp_tunnel_packet: used to foward to client the data
+        @param icmp_tunnel_packet: used to foward to client the data
         """
         await self.client_manager.write_to_client(
             icmp_tunnel_packet.session_id,
@@ -75,7 +86,7 @@ class ICMPOperationsHandler:
         """
         operate an ACK action.
         the packet is recognized by the session_id and the sequence of packet 
-        params: tunnel packet 
+        @param tunnel packet 
         """
         packet_id = (icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)
         if packet_id in self.packets_waiting_ack:
@@ -86,15 +97,25 @@ class ICMPOperationsHandler:
         Send an ACK for a packet using EchoReply.
         used by proxy-server
         """
+        # ack_tunnel_packet = ICMPTunnelPacket(
+        #     session_id=icmp_tunnel_packet.session_id,
+        #     seq=icmp_tunnel_packet.seq,
+        #     action=ICMPTunnelPacket.Action.ACK,
+        #     direction=self.direction,
+        # )
+        # self.send_icmp_packet(
+        #     icmp_packet.ICMPType.EchoReply,
+        #     ack_tunnel_packet.SerializeToString(),
+        # )
         ack_tunnel_packet = ICMPTunnelPacket(
             session_id=icmp_tunnel_packet.session_id,
             seq=icmp_tunnel_packet.seq,
-            action=ICMPTunnelPacket.Action.ACK,
+            action=Action.ACK,
             direction=self.direction,
         )
         self.send_icmp_packet(
             icmp_packet.ICMPType.EchoReply,
-            ack_tunnel_packet.SerializeToString(),
+            ack_tunnel_packet.serialize(),
         )
     def send_icmp_packet(
             self,
@@ -103,8 +124,8 @@ class ICMPOperationsHandler:
     ):
         """
         Build and send an ICMP packet on the ICMP socket.
-        params: packet_type echo reply or request
-                payload: the icmp_tunnel_packet serlized to string
+        @param packet_type echo reply or request
+        @param payload the icmp_tunnel_packet serlized 
         """
         new_icmp_packet = icmp_packet.ICMPPacket(
             packet_type=packet_type,
@@ -117,14 +138,18 @@ class ICMPOperationsHandler:
     async def send_icmp_packet_wait_ack(self, icmp_tunnel_packet: ICMPTunnelPacket):
             """
             Send an ICMP packet and ensure it is acknowledged. Retry up to 3 times if necessary.
-            params: icmp_tunnel_packet the packet sent it the icmp socket
+            @param icmp_tunnel_packet the packet sent it the icmp socket
             """
             self.packets_waiting_ack[(icmp_tunnel_packet.session_id, icmp_tunnel_packet.seq)] = asyncio.Event()
 
             for _ in range(3):
+                # self.send_icmp_packet(
+                #     icmp_packet.ICMPType.EchoRequest,
+                #     icmp_tunnel_packet.SerializeToString(),
+                # )
                 self.send_icmp_packet(
                     icmp_packet.ICMPType.EchoRequest,
-                    icmp_tunnel_packet.SerializeToString(),
+                    icmp_tunnel_packet.serialize(),
                 )
                 try:
                     await asyncio.wait_for(

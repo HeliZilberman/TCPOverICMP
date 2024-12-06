@@ -1,6 +1,26 @@
 import struct
 import socket
 from TCPOverICMP import exceptions
+"""
+icmp_packet.py
+
+This module provides functionality for creating and handling ICMP packets.
+- The `ICMPPacket` class represents an ICMP message, allowing serialization
+  and deserialization of packets according to the ICMP protocol format.
+- It includes utilities for computing and validating the checksum of packets
+  to ensure data integrity.
+
+Classes:
+- ICMPType: Defines constants for ICMP message types (e.g., EchoRequest, EchoReply).
+- ICMPPacket: Handles creating, parsing, and validating ICMP packets.
+
+Usage:
+- Serialize an ICMP packet for transmission using `ICMPPacket.serialize`.
+- Deserialize and validate an incoming packet with `ICMPPacket.deserialize`.
+
+This module is critical for the implementation of the ICMP-based communication
+tunnel in the project.
+"""
 
 
 
@@ -11,7 +31,7 @@ class ICMPType:
 
 class ICMPPacket:
     """
-    ICMP ICMPTunnelPacket implementation - uisng struct to seralize bytes 
+    ICMP Packet
     """
 
     CODE = 0

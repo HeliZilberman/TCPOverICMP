@@ -5,6 +5,7 @@ import logging
 from TCPOverICMP.icmp_packet import ICMPPacket  
 import struct
 from TCPOverICMP import exceptions
+import time
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
@@ -64,7 +65,7 @@ class ICMPSocket:
     async def wait_for_incoming_packet(self, remote_endpoint:dict = None):
         """
         listen on socket for incoming ICMP packets and put them into the queue(sniff).
-        params: remote_endpoint - initialize the ip of the repmote endpoint if needed
+        @param remote_endpoint - initialize the ip of the repmote endpoint if needed
         """
         while True:
             try:
@@ -78,8 +79,8 @@ class ICMPSocket:
     def sendto(self, packet: ICMPPacket, destination: str):
         """
         Send an ICMP packet to the specified destination.
-        params: packet: An instance of ICMPPacket to send.
-               destination: The IP address of the destination.
+        @param packet An instance of ICMPPacket to send.
+        @param destination The IP address of the destination.
         """
-        log.debug(f'Sending packet with payload: {packet.payload} to {destination}')
+        log.debug(f'Sending packet on {time.time()} \n the tunnel packet: \n{packet.payload} to {destination}')
         self._icmp_socket.sendto(packet.serialize(), (destination, 0))
