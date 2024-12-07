@@ -11,8 +11,6 @@ Key Components:
 
 The ProxyClient uses this server to accept connections from applications that need to tunnel TCP traffic over ICMP.
 """
-
-
 import asyncio
 import itertools
 import socket

@@ -60,7 +60,7 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
 
 
             # only add client if other endpoint acked.
-            if await self.operations_handler.send_icmp_packet_wait_ack(new_tunnel_packet):
+            if await self.send_icmp_packet_wait_ack(new_tunnel_packet):
                 self.client_manager.add_client(session_id, reader, writer)
             else:  # if the other endpoint didnt receive the START request, close the local client.
                 writer.close()
