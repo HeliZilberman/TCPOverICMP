@@ -42,12 +42,12 @@ class ProxyServer(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
             log.debug(f'connection.connect not started: {destination_host}:{port} refused connection.')
             return
     
-        # Get the underlying socket
-        socket_obj = writer.get_extra_info('socket')
-        if socket_obj:
-            # Set the TCP MSS (Maximum Segment Size)
-            socket_obj.setsockopt(socket.IPPROTO_TCP, socket.TCP_MAXSEG, mss)
-        log.debug(f"Set TCP MSS to {mss} bytes")
+        # # Get the underlying socket
+        # socket_obj = writer.get_extra_info('socket')
+        # if socket_obj:
+        #     # Set the TCP MSS (Maximum Segment Size)
+        #     socket_obj.setsockopt(socket.IPPROTO_TCP, socket.TCP_MAXSEG, mss)
+        # log.debug(f"Set TCP MSS to {mss} bytes")
     
         return reader, writer
     async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
