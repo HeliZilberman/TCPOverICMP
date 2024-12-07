@@ -70,7 +70,7 @@ class ClientManager:
         returns
         """
         if not self.client_exists(session_id):
-            raise exceptions.RemovingClientThatDoesntExistError(session_id, self.clients.keys())
+            raise exceptions.RemoveNonExistClient(session_id, self.clients.keys())
             
 
         log.debug(f'removing client session: (session_id={session_id})')
