@@ -38,10 +38,10 @@ class ClientSession:
         try:
             data = await self.reader.read(self.DATA_SIZE)
         except ConnectionResetError:
-            raise ConnectionError("Client closed the connection.")
+            raise exceptions.ClientConnectionClosed()
 
         if not data:
-            raise ConnectionError("Client closed the connection.")
+            raise exceptions.ClientConnectionClosed()
         return data
 
     async def write(self, seq: int, data: bytes):
@@ -51,7 +51,7 @@ class ClientSession:
         @param data: the data to be written
         """
         if self.writer.is_closing():
-            raise ConnectionError("Client closed the connection.")
+            raise exceptions.ClientConnectionClosed()
 
         if seq in self.packets.keys():
             log.debug(f'ignore repeated packet with sequence :{seq}')

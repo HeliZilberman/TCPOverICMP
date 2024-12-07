@@ -1,24 +1,5 @@
-class ClientClosedConnectionError(Exception):
-    pass
 
-
-class WriteAttemptedToNonExistentClient(Exception):
-    pass
-
-
-class ReadAttemptedFromNonExistentClient(Exception):
-    pass
-
-
-class ClientAlreadyExistsError(Exception):
-    pass
-
-
-class RemovingClientThatDoesntExistError(Exception):
-    pass
-
-
-class WrongChecksumOnICMPPacket(Exception):
+class InvalidChecksum(Exception):
     pass
 
 
@@ -26,5 +7,24 @@ class InvalidICMPCode(Exception):
     pass
 
 
-class RecvReturnedEmptyString(Exception):
+class RecivedEmptyData(Exception):
+    pass
+
+class ClientConnectionClosed(Exception):
+    pass
+
+
+class WriteNonExistentClient(Exception):
+    pass
+
+
+class ReadNonExistentClient(Exception):
+    pass
+
+
+class ClientSessionAlreadyON(Exception):
+    pass
+
+
+class RemoveNonExistClient(Exception):
     pass

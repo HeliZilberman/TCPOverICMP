@@ -70,11 +70,11 @@ class ClientManager:
                 data: the data to write.
         """
         if not self.client_exists(session_id):
-            raise exceptions.WriteAttemptedToNonExistentClient()
+            raise exceptions.WriteNonExistentClient()
 
         try:
             await self.clients[session_id].session.write(seq, data)
-        except exceptions.ClientClosedConnectionError:
+        except exceptions.ClientConnectionClosed:
             await self.timed_out_connections.put(session_id)
 
     async def read_from_client(self, session_id: int):
@@ -83,7 +83,7 @@ class ClientManager:
         @param session_id: the client to read from.
         """
         if not self.client_exists(session_id):
-            raise exceptions.ReadAttemptedFromNonExistentClient()
+            raise exceptions.ReadNonExistentClient()
 
         client = self.clients[session_id].session
 
@@ -91,7 +91,7 @@ class ClientManager:
             while True:
                 try:
                     data = await client.read()
-                except exceptions.ClientClosedConnectionError:
+                except exceptions.ClientConnectionClosed:
                     await self.timed_out_connections.put(session_id)
                     return
 
