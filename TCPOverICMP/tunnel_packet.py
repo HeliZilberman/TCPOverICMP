@@ -1,6 +1,5 @@
 import struct
 from enum import Enum
-import socket
 
 class Action(Enum):
     """

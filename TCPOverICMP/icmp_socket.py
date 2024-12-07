@@ -37,7 +37,7 @@ class ICMPSocket:
         """
         data = await asyncio.get_event_loop().sock_recv(self._icmp_socket, buffersize)
         if not data:
-            raise exceptions.RecvReturnedEmptyString()
+            raise RuntimeError("Received an empty string from the socket.")
         # Deserialize the ICMP packet
         try:
             raw_packet = data[self.IPv4_HEADER_SIZE:]  # Remove IP header

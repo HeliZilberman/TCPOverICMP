@@ -56,14 +56,14 @@ class ICMPPacket:
 
         # Validate the ICMP code
         if code != cls.CODE:
-            raise exceptions.InvalidICMPCode()
+            raise ValueError("Invalid ICMP code detected.")
 
         # Compute and validate the checksum
         computed_checksum = cls.compute_checksum(
             cls.ICMP_STRUCT.pack(packet_type, code, 0, identifier, sequence_number) + packet[cls.ICMP_STRUCT.size:]
         )
         if checksum != computed_checksum:
-            raise exceptions.WrongChecksumOnICMPPacket()
+            raise ValueError("Checksum verification failed for ICMP packet.")
 
         return cls(packet_type, identifier, sequence_number, packet[cls.ICMP_STRUCT.size:])  # Payload is after the header
 

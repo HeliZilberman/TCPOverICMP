@@ -48,3 +48,9 @@ class ProxyClient(tcp_over_icmp_tunnel.TCPoverICMPTunnel):
             else:  # if the other endpoint didnt receive the START request, close the local client.
                 writer.close()
                 await writer.wait_closed()
+
+    async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
+        """
+        start action is only sent to the proxy server therfore the packet is ignored
+        """
+        log.info(f'ignore packet eith invalod command{icmp_tunnel_packet}')

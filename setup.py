@@ -9,9 +9,6 @@ setup(
     license='',
     description='A Tunnel Implementation for TCP over ICMP',
     packages=['TCPOverICMP'],
-    install_requires=[
-        'protobuf',
-    ],
     entry_points={
         'console_scripts': [
             'proxy_client = TCPOverICMP.proxy_client_main:run_async_loop',

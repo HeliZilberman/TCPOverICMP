@@ -39,7 +39,7 @@ class ICMPOperationsHandler:
         await self.operations[icmp_tunnel_packet.action](icmp_tunnel_packet)
 
 
-    async def open_tcp_connection(destination_host, port, mss=1400):
+    async def open_tcp_connection(self,destination_host, port, mss=1400):
         """
         used to start a tcp connection bu proxy server when sent a start request
         @param destination_hst: ip adress of destination 
@@ -64,11 +64,6 @@ class ICMPOperationsHandler:
         """
         operates a start action, 
         """
-        # try:
-        #     reader, writer = await asyncio.open_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
-        # except ConnectionRefusedError:
-        #     log.debug(f'connection.connect not started: {icmp_tunnel_packet.destination_host}:{icmp_tunnel_packet.port} refused connection.')
-        #     return
         reader,writer = await self.open_tcp_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
         self.client_manager.add_client(
             session_id=icmp_tunnel_packet.session_id,
