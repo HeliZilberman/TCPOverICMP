@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from TCPOverICMP import client_manager, icmp_socket, icmp_packet
-
+import socket
 
 #from TCPOverICMP.proto import ICMPTunnelPacket
 from TCPOverICMP.tunnel_packet import ICMPTunnelPacket, Action, Direction
@@ -26,14 +26,7 @@ class ICMPOperationsHandler:
         self.direction = direction
         self.timed_out_tcp_connections = timed_out_tcp_connections
         self.packets_waiting_ack = {}
-        # self.operations = {
-        #     ICMPTunnelPacket.Action.TERMINATE: self.terminate_session,
-        #     ICMPTunnelPacket.Action.DATA_TRANSFER: self.handle_data,
-        #     ICMPTunnelPacket.Action.ACK: self.handle_ack,
-        # }
-        # if self.direction == ICMPTunnelPacket.Direction.PROXY_CLIENT:
-        #     self.operations[ICMPTunnelPacket.Action.START] = self.start_session
-
+      
         self.operations = {
             Action.TERMINATE: self.terminate_session,
             Action.DATA_TRANSFER: self.handle_data,
@@ -46,16 +39,37 @@ class ICMPOperationsHandler:
         await self.operations[icmp_tunnel_packet.action](icmp_tunnel_packet)
 
 
+    async def open_tcp_connection(destination_host, port, mss=1400):
+        """
+        used to start a tcp connection bu proxy server when sent a start request
+        @param destination_hst: ip adress of destination 
+        @param: port port of destination 
+        returns a reader write
+        """
+        try:
+            reader, writer = await asyncio.open_connection(destination_host, port)
+        except ConnectionRefusedError:
+            log.debug(f'connection.connect not started: {destination_host}:{port} refused connection.')
+            return
+    
+        # Get the underlying socket
+        socket_obj = writer.get_extra_info('socket')
+        if socket_obj:
+            # Set the TCP MSS (Maximum Segment Size)
+            socket_obj.setsockopt(socket.IPPROTO_TCP, socket.TCP_MAXSEG, mss)
+        log.debug(f"Set TCP MSS to {mss} bytes")
+    
+        return reader, writer
     async def start_session(self, icmp_tunnel_packet: ICMPTunnelPacket):
         """
         operates a start action, 
         """
-        try:
-            reader, writer = await asyncio.open_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
-        except ConnectionRefusedError:
-            log.debug(f'connection.connect not started: {icmp_tunnel_packet.destination_host}:{icmp_tunnel_packet.port} refused connection.')
-            return
-
+        # try:
+        #     reader, writer = await asyncio.open_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
+        # except ConnectionRefusedError:
+        #     log.debug(f'connection.connect not started: {icmp_tunnel_packet.destination_host}:{icmp_tunnel_packet.port} refused connection.')
+        #     return
+        reader,writer = await self.open_tcp_connection(icmp_tunnel_packet.destination_host, icmp_tunnel_packet.port)
         self.client_manager.add_client(
             session_id=icmp_tunnel_packet.session_id,
             reader=reader,
@@ -97,16 +111,6 @@ class ICMPOperationsHandler:
         Send an ACK for a packet using EchoReply.
         used by proxy-server
         """
-        # ack_tunnel_packet = ICMPTunnelPacket(
-        #     session_id=icmp_tunnel_packet.session_id,
-        #     seq=icmp_tunnel_packet.seq,
-        #     action=ICMPTunnelPacket.Action.ACK,
-        #     direction=self.direction,
-        # )
-        # self.send_icmp_packet(
-        #     icmp_packet.ICMPType.EchoReply,
-        #     ack_tunnel_packet.SerializeToString(),
-        # )
         ack_tunnel_packet = ICMPTunnelPacket(
             session_id=icmp_tunnel_packet.session_id,
             seq=icmp_tunnel_packet.seq,

@@ -13,7 +13,7 @@ log.setLevel(logging.DEBUG)
 class ICMPSocket:
     DEFAULT_ICMP_TARGET = ('', 0)
     IPv4_HEADER_SIZE = 20
-    SOCKET_BUFFER_SIZE = 4096
+    SOCKET_BUFFER_SIZE = 1500
     ICMP_INIT_PACKET = b'\x00\x00'
 
     def __init__(self, packet_queue: asyncio.Queue):
