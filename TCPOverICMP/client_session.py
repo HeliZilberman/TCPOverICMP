@@ -1,3 +1,21 @@
+"""
+client_session.py
+
+This module defines the ClientSession class, responsible for managing individual TCP client sessions.
+It uses asyncio for asynchronous I/O operations, allowing non-blocking communication.
+
+Key Components:
+- session_id: A unique identifier for the session.
+- reader: An asyncio StreamReader for receiving data from the client.
+- writer: An asyncio StreamWriter for sending data to the client.
+- seq: A sequence number generator to track the order of packets.
+- packets: A dictionary to store packets that are queued for writing.
+
+Main Methods:
+- stop: Closes the client session by shutting down the underlying socket.
+- read: Reads a fixed amount of data from the client connection.
+- write: Writes data to the client sequentially, ensuring that packets are sent in the correct order.
+"""
 import asyncio
 import logging
 import itertools
@@ -7,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class ClientSession:
-    DATA_SIZE = 1024
+    DATA_SIZE = 1500
     SEQUENCE_INIT = 1
     def __init__(
             self,

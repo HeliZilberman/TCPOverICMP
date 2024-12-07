@@ -1,3 +1,18 @@
+"""
+proxy_server.py
+
+This module implements the ProxyServer class, which handles the server-side operations of the TCP-over-ICMP tunnel.
+It listens for ICMP requests to establish TCP connections and forwards the data between the client and destination.
+
+Key Components:
+- `ProxyServer`: Inherits from `TCPoverICMPTunnel` and manages TCP connections to destination servers.
+- Establishes TCP connections upon receiving START requests.
+- Forwards data received over ICMP to the appropriate TCP connection.
+
+Main Methods:
+- `open_tcp_connection`: Opens a TCP connection to the specified destination host and port, setting the MSS (Maximum Segment Size).
+- `start_session`: Initiates a TCP session and registers the client in the `ClientManager`.
+"""
 import asyncio
 import logging
 from TCPOverICMP.tunnel_packet import ICMPTunnelPacket,Action,Direction

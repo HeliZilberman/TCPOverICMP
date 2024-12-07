@@ -1,3 +1,20 @@
+"""
+client_manager.py
+
+This module defines the ClientManager class, responsible for managing multiple client sessions. It handles adding, 
+removing, reading from, and writing to clients asynchronously. Each client session is tracked with a unique session ID.
+
+Key Components:
+- ClientHandler: Represents a client session and its associated reading task.
+- ClientManager: Manages all client sessions and handles communication with each client.
+
+Main Methods:
+- add_client: Adds a new client and starts reading from it asynchronously.
+- remove_client: Removes a client session and cancels its task.
+- write_to_client: Writes data to a specific client session in the correct sequence.
+- read_from_client: Continuously reads data from a client and places it in the input queue.
+"""
+
 import asyncio
 import logging
 from TCPOverICMP import exceptions

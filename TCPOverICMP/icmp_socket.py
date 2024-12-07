@@ -1,3 +1,20 @@
+"""
+icmp_socket.py
+
+This module defines the ICMPSocket class, responsible for managing ICMP communication using raw sockets.
+It facilitates sending and receiving ICMP packets asynchronously, making it suitable for non-blocking operations.
+
+Key Components:
+- _icmp_socket: A raw socket for ICMP communication.
+- packet_queue: An asyncio.Queue to store received ICMP packets.
+
+Main Methods:
+- recv: Asynchronously receives ICMP packets and deserializes them.
+- wait_for_incoming_packet: Continuously listens for incoming ICMP packets and adds them to the packet queue.
+- sendto: Sends an ICMP packet to a specified destination.
+"""
+
+
 import sys
 import asyncio
 import socket
@@ -5,7 +22,7 @@ import logging
 from TCPOverICMP.icmp_packet import ICMPPacket  
 import struct
 from TCPOverICMP import exceptions
-import time
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 

@@ -1,3 +1,20 @@
+"""
+proxy_client.py
+
+This module implements the ProxyClient class, which manages the client-side of the TCP-over-ICMP tunnel. 
+It listens for incoming TCP connections on the localhost, sends connection requests to the Proxy Server 
+via ICMP, and handles the forwarding of TCP data over ICMP.
+
+Key Components:
+- `ProxyClient`: Inherits from `TCPoverICMPTunnel` and manages TCP connections.
+- Listens on localhost for TCP connections.
+- Sends a START packet to the Proxy Server to initiate a tunnel session.
+- Manages incoming TCP connections and forwards data using ICMP.
+
+Main Methods:
+- `wait_for_new_connection`: Waits for new TCP connections and sends a START request to the Proxy Server.
+- `start_session`: Logs ignored packets since START actions are only relevant for the Proxy Server.
+"""
 import asyncio
 import logging
 from TCPOverICMP import tcp_server

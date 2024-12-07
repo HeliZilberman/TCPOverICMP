@@ -1,3 +1,18 @@
+"""
+tcp_server.py
+
+This module implements the Server class, responsible for handling incoming TCP connections.
+It is used by the ProxyClient to listen for local TCP connections and forward them over ICMP.
+
+Key Components:
+- `Server`: Creates a TCP server that listens for incoming connections and passes them to the ProxyClient.
+- `server_loop`: Asynchronous loop to handle incoming connections indefinitely.
+- `operate_new_tcp_connection`: Processes each new TCP connection and queues it for further handling.
+
+The ProxyClient uses this server to accept connections from applications that need to tunnel TCP traffic over ICMP.
+"""
+
+
 import asyncio
 import itertools
 import socket

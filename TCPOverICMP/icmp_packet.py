@@ -1,6 +1,4 @@
-import struct
-import socket
-from TCPOverICMP import exceptions
+
 """
 icmp_packet.py
 
@@ -21,7 +19,9 @@ Usage:
 This module is critical for the implementation of the ICMP-based communication
 tunnel in the project.
 """
-
+import struct
+import socket
+from TCPOverICMP import exceptions
 
 
 class ICMPType:

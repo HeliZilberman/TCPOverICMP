@@ -1,3 +1,22 @@
+"""
+tcp_over_icmp_tunnel.py
+
+This module defines the TCPoverICMPTunnel class, which provides the core functionality for tunneling TCP traffic 
+over ICMP. The class handles the sending and receiving of ICMP packets, manages client sessions, and ensures reliable 
+communication by handling acknowledgments and retransmissions. Both ProxyClient and ProxyServer classes inherit from 
+this base class and customize it for client-side and server-side operations, respectively.
+
+Key Components:
+- ICMP_PACKET_IDENTIFIER: Used to validate incoming ICMP packets.
+- PACKET_SEQUENCE_MARKER: Helps track the sequence of packets.
+- RESPONSE_WAIT_TIME: Defines the time to wait for an acknowledgment.
+
+Main Methods:
+- run: Starts all tasks related to the tunnel.
+- handle_packets_from_tcp_channel: Sends TCP data as ICMP packets.
+- handle_packets_from_icmp_channel: Processes incoming ICMP packets and executes corresponding actions.
+- send_icmp_packet_wait_ack: Sends an ICMP packet and waits for an acknowledgment.
+"""
 import asyncio
 import logging
 from TCPOverICMP import client_manager, icmp_socket, icmp_packet
