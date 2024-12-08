@@ -23,9 +23,9 @@ from TCPOverICMP import exceptions
 
 log = logging.getLogger(__name__)
 
-#ZZZZ
 class ClientSession:
-    DATA_SIZE = 1550
+    #reading
+    DATA_SIZE = 1400
     SEQUENCE_INIT = 1
     def __init__(
             self,
@@ -50,8 +50,8 @@ class ClientSession:
 
     async def read(self):
         """
-        read RECV_BLOCK_SIZE from the reader
-        :return: the data that was just read
+        read data size from the reader
+        return: the data that was just read
         """
         try:
             data = await self.reader.read(self.DATA_SIZE)
