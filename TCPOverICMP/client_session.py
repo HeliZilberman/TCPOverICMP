@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class ClientSession:
-    DATA_SIZE = 1500
+    DATA_SIZE = 1550
     SEQUENCE_INIT = 1
     def __init__(
             self,
