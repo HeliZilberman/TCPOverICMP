@@ -25,7 +25,7 @@ from TCPOverICMP import exceptions
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
+#zzzzz
 
 class ICMPSocket:
     DEFAULT_ICMP_TARGET = ('', 0)
