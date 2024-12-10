@@ -56,7 +56,7 @@ class ClientManager:
         @param session_id: the client to add, reader ,writer to create a client session
         """
         if self.client_exists(session_id):
-            raise exceptions.ClientAlreadyExistsError()
+            raise exceptions.ClientSessionAlreadyON()
 
         new_client_session = ClientSession(session_id, reader, writer)
         new_task = asyncio.create_task(self.read_from_client(session_id))

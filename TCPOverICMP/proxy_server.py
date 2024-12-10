@@ -15,7 +15,7 @@ Main Methods:
 """
 import asyncio
 import logging
-from TCPOverICMP.tunnel_packet import ICMPTunnelPacket,Action,Direction
+from TCPOverICMP.tunnel_packet import ICMPTunnelPacket,Direction
 import socket
 
 from TCPOverICMP import tcp_over_icmp_tunnel
