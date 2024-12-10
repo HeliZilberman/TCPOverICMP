@@ -108,13 +108,12 @@ class ICMPPacket:
             total += (data[count + 1] << 8) + data[count]
             count += 2
 
-        if count_to < len(data):  # Handle the case of an odd-length packet
+        if count_to < len(data):  
             total += data[-1]
 
-        # Fold 32-bit sum into 16 bits
+
         total &= 0xFFFFFFFF
         total = (total >> 16) + (total & 0xFFFF)
         total += (total >> 16)
 
-        # One's complement and network byte order
         return socket.htons(~total & 0xFFFF)
