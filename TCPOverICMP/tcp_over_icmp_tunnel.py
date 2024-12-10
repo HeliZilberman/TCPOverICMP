@@ -84,7 +84,7 @@ class TCPoverICMPTunnel:
                 direction=self.direction,
                 payload=data,
             )
-            log.debug(f'packet size to session:{session_id} with sequnce {seq} is: {len(data)}')
+            # log.debug(f'packet size to session:{session_id} with sequnce {seq} is: {len(data)}')
             #scheduale the packet sending action
             asyncio.create_task(self.send_icmp_packet_wait_ack(new_tunnel_packet))
     
