@@ -67,7 +67,6 @@ class ClientManager:
         """
         remove a client, doing so by canceling task of cloent 
         @param session_id: the session_id to remove
-        returns
         """
         if not self.client_exists(session_id):
             raise exceptions.RemoveNonExistClient(session_id, self.clients.keys())
@@ -81,10 +80,11 @@ class ClientManager:
 
     async def write_to_client(self, session_id: int, seq: int, data: bytes):
         """
-        function for writing to a managed client.
+        function for writing to a managed client , writes to the existing client sesstion
+        from the app client uses (for example browser)
         @param session_id: thr client id of the client to writye to.
-                seq: the sequence number of the write. for correct order of the packets.
-                data: the data to write.
+        @param seq: the sequence number of the write. for correct order of the packets.
+        @param data: the data to write.
         """
         if not self.client_exists(session_id):
             raise exceptions.WriteNonExistentClient()

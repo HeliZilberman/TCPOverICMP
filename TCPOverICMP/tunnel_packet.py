@@ -1,3 +1,27 @@
+"""
+tunnel_packet.py
+
+This file defines the ICMPTunnelPacket class, which is responsible for handling the creation, serialization, 
+and deserialization of tunnel packets sent over ICMP. It includes enums for Action and Direction to specify 
+the type of operation and communication direction.
+
+- Action: Enum representing operations like START, TERMINATE, DATA_TRANSFER, and ACK.
+- Direction: Enum indicating whether the packet is for the PROXY_SERVER or PROXY_CLIENT.
+
+The ICMPTunnelPacket class uses struct to pack and unpack packet fields, including:
+- session_id: Unique session identifier.
+- action: The action to perform (e.g., START, DATA_TRANSFER).
+- direction: The direction of communication.
+- seq: Optional sequence number.
+- destination_host: Optional destination host.
+- port: Optional destination port.
+- payload: Optional payload data.
+
+Key Methods:
+- serialize(): Converts the packet into bytes for transmission.
+- deserialize(): Reconstructs a packet object from a byte stream.
+- __repr__(): Provides a formatted string representation for easy debugging.
+"""
 import struct
 from enum import Enum
 
@@ -84,6 +108,7 @@ class ICMPTunnelPacket:
      base_repr = (
         f"ICMPTunnelPacket(\n"
         f"    session_id={self.session_id},\n"
+        f"    seq={self.seq},\n"
         f"    action={self.action.name},\n"
         f"    direction={self.direction.name},\n"
      )
